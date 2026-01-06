@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Rating uses Decimal(2,1) to allow half-star precision (e.g., 7.5).
+
+model Title {
+  id             String       @id @default(uuid())
+  tmdbId         Int
+  mediaType      String
+  title          String
+  originalTitle  String?
+  releaseDate    DateTime?    @db.Date
+  posterPath     String?
+  backdropPath   String?
+  overview       String?
+  runtimeMinutes Int?
+  genres         String[]
+  popularity     Float?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  diaryEntries   DiaryEntry[]
+  reviews        Review[]
+  listItems      ListItem[]
+
+  @@unique([tmdbId, mediaType])
+  @@index([tmdbId])
+}
+
+model DiaryEntry {
+  id        String   @id @default(uuid())
+  titleId   String
+  title     Title    @relation(fields: [titleId], references: [id])
+  watchedOn DateTime @db.Date
+  rating    Decimal? @db.Decimal(2, 1)
+  liked     Boolean  @default(false)
+  rewatch   Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([titleId])
+}
+
+model Review {
+  id               String      @id @default(uuid())
+  titleId          String
+  title            Title       @relation(fields: [titleId], references: [id])
+  watchedOn        DateTime?   @db.Date
+  rating           Decimal?    @db.Decimal(2, 1)
+  containsSpoilers Boolean     @default(false)
+  liked            Boolean     @default(false)
+  body             String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  tags             ReviewTag[]
+
+  @@index([titleId])
+}
+
+model Tag {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  reviews   ReviewTag[]
+}
+
+model ReviewTag {
+  id       String @id @default(uuid())
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id])
+  tagId    String
+  tag      Tag    @relation(fields: [tagId], references: [id])
+
+  @@unique([reviewId, tagId])
+  @@index([reviewId])
+  @@index([tagId])
+}
+
+model List {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  privacy     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  items       ListItem[]
+}
+
+model ListItem {
+  id      String  @id @default(uuid())
+  listId  String
+  list    List    @relation(fields: [listId], references: [id])
+  titleId String
+  title   Title   @relation(fields: [titleId], references: [id])
+  rank    Int
+  note    String?
+
+  @@unique([listId, titleId])
+  @@index([listId])
+  @@index([titleId])
+}

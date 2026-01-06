@@ -2,7 +2,65 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Update `.env.local` with your values (at minimum `TMDB_API_KEY`), then restart
+the dev server after any env changes so Next.js picks them up.
+
+## Database setup
+
+See `docs/DB.md` for Supabase project setup, connection strings, and key usage.
+
+### Prisma CLI
+
+Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Run migrations (dev):
+
+```bash
+npx prisma migrate dev
+```
+
+Run migrations (prod):
+
+```bash
+npx prisma migrate deploy
+```
+
+Warning: `prisma migrate dev` can reset or modify data during development. Avoid
+running destructive migrations on production data without a backup plan.
+
+### Seed data
+
+```bash
+npm run db:seed
+```
+
+### API examples (local)
+
+```powershell
+# Catalog search
+curl.exe "http://localhost:3000/api/catalog/search?q=matrix&type=movie&page=1"
+
+# Catalog hydrate (admin-only when PUBLIC_READONLY=true)
+curl.exe -X POST "http://localhost:3000/api/catalog/hydrate" ^
+  -H "Content-Type: application/json" ^
+  -H "x-admin-passphrase: <ADMIN_PASSPHRASE>" ^
+  -d "{\"source\":\"tmdb\",\"mediaType\":\"movie\",\"externalId\":603}"
+
+# Titles query
+curl.exe "http://localhost:3000/api/titles?query=matrix"
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -15,6 +73,12 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Database health check
+
+```bash
+curl http://localhost:3000/api/health/db
+```
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
