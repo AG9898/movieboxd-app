@@ -11,6 +11,12 @@ cp .env.example .env.local
 Update `.env.local` with your values (at minimum `TMDB_API_KEY`), then restart
 the dev server after any env changes so Next.js picks them up.
 
+## Admin writes
+
+When `PUBLIC_READONLY=true`, write endpoints require an `x-admin-passphrase`
+header matching `ADMIN_PASSPHRASE`. Set `PUBLIC_READONLY=false` to allow writes
+without the header (local/dev only).
+
 ## Database setup
 
 See `docs/DB.md` for Supabase project setup, connection strings, and key usage.
@@ -53,11 +59,16 @@ curl.exe "http://localhost:3000/api/catalog/search?q=matrix&type=movie&page=1"
 # Catalog hydrate (admin-only when PUBLIC_READONLY=true)
 curl.exe -X POST "http://localhost:3000/api/catalog/hydrate" ^
   -H "Content-Type: application/json" ^
+  -d "{\"source\":\"tmdb\",\"mediaType\":\"movie\",\"externalId\":603}"
+
+# Catalog hydrate (with admin header)
+curl.exe -X POST "http://localhost:3000/api/catalog/hydrate" ^
+  -H "Content-Type: application/json" ^
   -H "x-admin-passphrase: <ADMIN_PASSPHRASE>" ^
   -d "{\"source\":\"tmdb\",\"mediaType\":\"movie\",\"externalId\":603}"
 
 # Titles query
-curl.exe "http://localhost:3000/api/titles?query=matrix"
+curl.exe "http://localhost:3000/api/titles?q=matrix"
 ```
 
 Then, run the development server:

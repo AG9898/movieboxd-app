@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Track Films - FilmTrack</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#0d8bf2",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101a22",
+              "surface-dark": "#1c2a35",
+              "surface-highlight": "#223749",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101a22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #223749; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0d8bf2; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#223749] bg-[#101a23]/95 backdrop-blur-md px-4 sm:px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-white cursor-pointer">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M39.475 21.6262C40.358 21.4363 40.6863 21.5589 40.7581 21.5934C40.7876 21.655 40.8547 21.857 40.8082 22.3336C40.7408 23.0255 40.4502 24.0046 39.8572 25.2301C38.6799 27.6631 36.5085 30.6631 33.5858 33.5858C30.6631 36.5085 27.6632 38.6799 25.2301 39.8572C24.0046 40.4502 23.0255 40.7407 22.3336 40.8082C21.8571 40.8547 21.6551 40.7875 21.5934 40.7581C21.5589 40.6863 21.4363 40.358 21.6262 39.475C21.8562 38.4054 22.4689 36.9657 23.5038 35.2817C24.7575 33.2417 26.5497 30.9744 28.7621 28.762C30.9744 26.5497 33.2417 24.7574 35.2817 23.5037C36.9657 22.4689 38.4054 21.8562 39.475 21.6262ZM4.41189 29.2403L18.7597 43.5881C19.8813 44.7097 21.4027 44.9179 22.7217 44.7893C24.0585 44.659 25.5148 44.1631 26.9723 43.4579C29.9052 42.0387 33.2618 39.5667 36.4142 36.4142C39.5667 33.2618 42.0387 29.9052 43.4579 26.9723C44.1631 25.5148 44.659 24.0585 44.7893 22.7217C44.9179 21.4027 44.7097 19.8813 43.5881 18.7597L29.2403 4.41187C27.8527 3.02428 25.8765 3.02573 24.2861 3.36776C22.6081 3.72863 20.7334 4.58419 18.8396 5.74801C16.4978 7.18716 13.9881 9.18353 11.5858 11.5858C9.18354 13.988 7.18717 16.4978 5.74802 18.8396C4.58421 20.7334 3.72865 22.6081 3.36778 24.2861C3.02574 25.8765 3.02429 27.8527 4.41189 29.2403Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">FilmTrack</h2>
+</div>
+<!-- Global Search -->
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full group">
+<div class="text-[#90b0cb] flex border-none bg-[#223749] items-center justify-center pl-4 rounded-l-lg border-r-0 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-0 border-none bg-[#223749] focus:border-none h-full placeholder:text-[#90b0cb] px-3 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal transition-all" placeholder="Find a film..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-4 md:gap-8">
+<div class="hidden md:flex items-center gap-9">
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Films</a>
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Diary</a>
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Lists</a>
+<a class="text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Members</a>
+</div>
+<button class="flex items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-[#223749] text-white hover:bg-[#2c445a] transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border border-[#223749]"></span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-[#223749] cursor-pointer" data-alt="User profile avatar showing a stylized portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABmIBq2xl4lsCNhIfnAlVc4XYt5hHvfoeNMHxmaE_WlRMhkfBaNDYFQXvpxmAumLStLeojvhOk716mnAo1wsjGD5Iou8_nLSEma8NH6HAHEUNmHJSSwM4P3hwgmhlNS--16sI63aIHT4uPaJdiKLkVlFzgrKZsSoPVCZa_wPNvgwmGc1pZ4wUAfP55XCnKdbNLVq0pxvDe_xmzubY4A_NWbDcApeJeEoWj4RFACofurMdoSsgQ_N3x8p_JJJ0ZNFFLwORqkunsyg");'></div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<main class="layout-container flex grow flex-col w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-12 py-8">
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- LEFT COLUMN: Input & Feed -->
+<div class="flex flex-col flex-1 gap-8">
+<!-- Page Heading -->
+<div class="flex flex-col gap-2">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Track Films</h1>
+<p class="text-[#90b0cb] text-base font-normal leading-normal">Log the movies you've watched, rate them, and save them to your diary.</p>
+</div>
+<!-- Log New Film Card -->
+<div class="bg-[#1c2a35] rounded-xl p-6 border border-[#223749] shadow-lg">
+<div class="flex flex-col gap-4">
+<label class="flex flex-col gap-2">
+<span class="text-white text-sm font-semibold">What did you watch?</span>
+<div class="flex w-full items-center rounded-lg bg-[#223749] focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<input class="w-full bg-transparent border-none text-white placeholder-[#90b0cb] px-4 py-3 focus:ring-0 text-base" placeholder="Search for a film title..."/>
+<span class="material-symbols-outlined text-[#90b0cb] pr-4">movie</span>
+</div>
+</label>
+<div class="flex flex-wrap gap-4 items-center justify-between mt-2">
+<div class="flex items-center gap-4">
+<!-- Date Picker Trigger -->
+<button class="flex items-center gap-2 bg-[#223749] hover:bg-[#2c445a] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-[18px] text-[#90b0cb]">calendar_today</span>
+<span>Today</span>
+</button>
+<!-- Rating Stars -->
+<div class="flex items-center gap-1 group">
+<span class="text-[#90b0cb] text-xs font-medium mr-2 uppercase tracking-wide">Rating</span>
+<button class="text-[#2c445a] hover:text-primary hover:scale-110 transition-transform"><span class="material-symbols-outlined fill-current">star</span></button>
+<button class="text-[#2c445a] hover:text-primary hover:scale-110 transition-transform"><span class="material-symbols-outlined fill-current">star</span></button>
+<button class="text-[#2c445a] hover:text-primary hover:scale-110 transition-transform"><span class="material-symbols-outlined fill-current">star</span></button>
+<button class="text-[#2c445a] hover:text-primary hover:scale-110 transition-transform"><span class="material-symbols-outlined fill-current">star</span></button>
+<button class="text-[#2c445a] hover:text-primary hover:scale-110 transition-transform"><span class="material-symbols-outlined fill-current">star</span></button>
+</div>
+<!-- Like Toggle -->
+<button class="flex items-center justify-center w-9 h-9 rounded-full bg-[#223749] text-[#90b0cb] hover:text-pink-500 hover:bg-pink-500/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<!-- Submit Button -->
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-wide shadow-md shadow-primary/20 transition-all transform active:scale-95">
+                                Log Film
+                            </button>
+</div>
+<!-- Optional Review Textarea -->
+<div class="mt-2">
+<textarea class="w-full bg-[#223749] border-none rounded-lg text-white placeholder-[#90b0cb]/70 p-3 text-sm focus:ring-1 focus:ring-primary resize-none h-20" placeholder="Add a review (optional)..."></textarea>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<div class="flex flex-col gap-4 mt-4">
+<div class="flex items-center justify-between">
+<h3 class="text-white text-xl font-bold">Recently Watched</h3>
+<div class="flex gap-2">
+<button class="text-[#90b0cb] hover:text-white text-sm font-medium px-2 py-1 rounded hover:bg-[#223749] transition-colors">This Month</button>
+<button class="text-white text-sm font-medium px-2 py-1 rounded bg-[#223749]">All Time</button>
+</div>
+</div>
+<!-- Movie Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+<!-- Movie Card 1 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for Dune Part Two movie" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDJNazUWf9MEwBqK16Gi9itJLaSl-Z9bhLheIfu7ueaFa2fDQ1-zhFGyMa1DUtUxeUShSGDXk8kx9oFamr1W0LJ5oEMfm2ivKajfFB0K_O4FtrSdhK_pvQKoj-yJY6-CsgOwMu1QORGGKIKMKRkyeWrNHT9k9RUMunuHarQYx9jm17vBFqkMqWV-CUTKqTdJgHrMREEsJK7Vdnd-XRpufHtZQUVSNa2vU1I47zLxWZKcnSvhXAABU7zYvo59czNc7Q9g8UlJmIP2Q');"></div>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="bg-black/60 backdrop-blur-sm rounded-full p-1 text-white">
+<span class="material-symbols-outlined text-[16px] block">more_horiz</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">Dune: Part Two</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Oct 24</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 2 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for Oppenheimer movie abstract representation" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAvp9mccvB0Sq64MtEnt4FQNOis4xlO4_x7LB3VephhYlyf3JByhrZ-xacB0ilcCx1hzs72yONedZ59v48_yfQYgfMk7HBWNhbcIvU12FAzlNHuP0aSfQQITtDr5GvQ27yYhxkRUZOjVkNmbakPaT3E-edSVldL8arej9xw0tm9RuciFpLu9SERghWAzpxwc7kaRnADiv08HFf0Oyvx9hq57DoyzobrWrRNn04BNcG28hZrUQLjWUcByoj839LGluDnnqfmtvZouQ');"></div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">Oppenheimer</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star_half</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Oct 20</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 3 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for Barbie movie abstract pink" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB49lCUuX3xbWeXCRpie-v8avqm2q6_dJZb2Igz6lk76RNwNSPGsUqZ2xy5FXi_D24fXR_tjfjvZ9wC25eTRV9FQ7nBzJAatFUyebcibUKyzOPX-t3bUDBbbAO8VqcFduk6qaUI918nBlP09wzLHYR2HXAyKy8sB69O9sl3KCjPHJAE2YNKcE_rfS94SRvwwYaN4AqHUMI0jncn5NsRSmsO2b_SidSKytphwAw35Mf2d9-uuJyh3wtlG_-kU__XchK0YetUk98i1Q');"></div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">Barbie</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] text-[#2c445a]">star</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Oct 18</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 4 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for abstract sci-fi movie" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCyPc3V65WiMZSfmqjIADzDgG5aKQ6pai4KVM_MtMekLFVG-Guk2iSSiV3LXogjEJOwpIVryI46HXKV7OSYsd9Tge9XtClZndQKjsRwm-fz878fmqTYkLPX2XP2yvHHY0Atyy2EAgnZmt02DaAV-CR6u60zO456fNlWN_DQ3C3Q8KEvy50HXlaydtiD8IG5cPlVFi161S_hZRgOLrAN_q66Pbz6V1JyWbWUG8IQjofeprmHlBF7bsc1MLfjvxXJ5UEjcmz66ZFh1A');"></div>
+<div class="absolute top-2 right-2 bg-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                                    REWATCH
+                                </div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">Blade Runner 2049</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Oct 12</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 5 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for psychological thriller movie" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmlZQeBHLZETZUaF8OLiy8LxYbwW9jUQK_4hmoRUrOeaq8__fcaaVc3BW9pySPxIsKPoyueHs-W-mmj2MQ04E71wldxGhn8w4TgFExnLTigLY6hC-BLH5-vqcETn2-CmX3L8gzPEavsSE90h1Lgf4OB5mDZP-T9xrVqQvjjewxX3QJDllVRWq2sxE_U13_j2-fuFY72XIHxFPdy8esuCn0JZzyuQEaiLokqtjkeIaLnrvvqaa6M5bgIbv2qEyL22q6DG2bStCGSw');"></div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">Parasite</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Oct 05</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 6 -->
+<div class="group relative flex flex-col gap-2">
+<div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#223749] relative shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Poster for classic drama movie" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAU5Tw-PqVTTE_LNlCpTuDmDy58l1A-RB_9aSMP0rXSDSP3dhB8sFt-_05jMiEVjHxsTnkRtDCfPELfuQbtTge1i-u_HfAxFWEEqGIrsQOMfrXNYPZP0rwsTBBIFvzaAkdiwdNXQhuBEuD-TGe3GqGFeOYR1bSM7mWVbmhKV9OmAYFCk4BjQmaNKip0A_CdPqF2kasK1E4nCx6HP9ez2d47Z--TpR-8YzTCVHUhjjTRp1EUNOFYvpqzU2lv7pp4-nfMMvXiKGaacw');"></div>
+</div>
+<div class="flex flex-col">
+<h4 class="text-white font-semibold text-sm truncate">The Godfather</h4>
+<div class="flex items-center justify-between mt-0.5">
+<div class="flex text-primary text-[10px] gap-0.5">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+</div>
+<span class="text-[#90b0cb] text-xs">Sep 30</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Stats & Calendar -->
+<div class="flex flex-col w-full lg:w-[340px] gap-6 shrink-0">
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-1 rounded-lg p-5 bg-[#1c2a35] border border-[#223749]">
+<p class="text-[#90b0cb] text-xs font-medium uppercase tracking-wider">Total</p>
+<p class="text-white text-3xl font-black">1,240</p>
+<div class="flex items-center text-[#0bda5b] text-xs font-bold gap-0.5 mt-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+2%</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-5 bg-[#1c2a35] border border-[#223749]">
+<p class="text-[#90b0cb] text-xs font-medium uppercase tracking-wider">This Year</p>
+<p class="text-white text-3xl font-black">42</p>
+<div class="flex items-center text-[#0bda5b] text-xs font-bold gap-0.5 mt-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+5%</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-5 bg-[#1c2a35] border border-[#223749]">
+<p class="text-[#90b0cb] text-xs font-medium uppercase tracking-wider">This Month</p>
+<p class="text-white text-3xl font-black">12</p>
+<div class="flex items-center text-[#0bda5b] text-xs font-bold gap-0.5 mt-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+10%</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-5 bg-[#1c2a35] border border-[#223749]">
+<p class="text-[#90b0cb] text-xs font-medium uppercase tracking-wider">Avg Rating</p>
+<div class="flex items-baseline gap-1">
+<p class="text-white text-3xl font-black">3.8</p>
+<span class="text-[#90b0cb] text-sm">/ 5</span>
+</div>
+</div>
+</div>
+<!-- Calendar Widget -->
+<div class="bg-[#1c2a35] rounded-xl border border-[#223749] overflow-hidden">
+<div class="p-4 border-b border-[#223749] flex items-center justify-between">
+<h3 class="text-white font-bold text-sm">Diary Activity</h3>
+<button class="text-primary text-xs font-bold uppercase hover:underline">View Full</button>
+</div>
+<div class="p-4">
+<div class="flex items-center justify-between mb-4">
+<button class="text-[#90b0cb] hover:text-white p-1 rounded-full hover:bg-[#223749] transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<p class="text-white text-sm font-bold">October 2023</p>
+<button class="text-[#90b0cb] hover:text-white p-1 rounded-full hover:bg-[#223749] transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-y-2">
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">S</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">M</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">T</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">W</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">T</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">F</p>
+<p class="text-[#90b0cb] text-[10px] font-bold text-center">S</p>
+<!-- Days -->
+<div class="col-start-4 flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">1</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">2</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">3</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">4</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-white bg-primary font-bold text-xs rounded-full shadow-lg shadow-primary/30 cursor-pointer relative group/cal">5
+                                <div class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded hidden group-hover/cal:block whitespace-nowrap z-10">Watched: Parasite</div>
+</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">6</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">7</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">8</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">9</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">10</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">11</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-white font-bold text-xs rounded-full border border-primary/50 hover:bg-primary/20 cursor-pointer">12</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">13</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">14</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">15</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">16</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">17</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-white font-bold text-xs rounded-full border border-primary/50 hover:bg-primary/20 cursor-pointer">18</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">19</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-white font-bold text-xs rounded-full border border-primary/50 hover:bg-primary/20 cursor-pointer">20</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">21</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">22</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">23</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-white font-bold text-xs rounded-full border border-primary/50 hover:bg-primary/20 cursor-pointer">24</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">25</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">26</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">27</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">28</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">29</div></div>
+<div class="flex justify-center"><div class="w-8 h-8 flex items-center justify-center text-[#90b0cb] text-xs rounded-full hover:bg-[#223749] cursor-pointer">30</div></div>
+</div>
+</div>
+</div>
+<!-- Genre Stats (Bonus) -->
+<div class="bg-[#1c2a35] rounded-xl border border-[#223749] p-5">
+<h3 class="text-white font-bold text-sm mb-4">Top Genres</h3>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="text-[#90b0cb] text-xs w-16 font-medium">Sci-Fi</div>
+<div class="flex-1 h-2 bg-[#223749] rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%] rounded-full"></div>
+</div>
+<div class="text-white text-xs font-bold w-6 text-right">28</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-[#90b0cb] text-xs w-16 font-medium">Drama</div>
+<div class="flex-1 h-2 bg-[#223749] rounded-full overflow-hidden">
+<div class="h-full bg-primary/80 w-[50%] rounded-full"></div>
+</div>
+<div class="text-white text-xs font-bold w-6 text-right">15</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-[#90b0cb] text-xs w-16 font-medium">Action</div>
+<div class="flex-1 h-2 bg-[#223749] rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 w-[30%] rounded-full"></div>
+</div>
+<div class="text-white text-xs font-bold w-6 text-right">8</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

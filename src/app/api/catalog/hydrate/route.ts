@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
+import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { tmdbGetDetails } from "@/lib/tmdb";
 import { tvmazeGetShow } from "@/lib/tvmaze";
@@ -33,14 +33,13 @@ function stripHtml(input?: string | null): string | null {
   return input.replace(/<[^>]+>/g, "").trim() || null;
 }
 
-function requireAdmin(request: Request): boolean {
-  if (!env.PUBLIC_READONLY) return true;
-  const passphrase = request.headers.get("x-admin-passphrase");
-  return !!passphrase && !!env.ADMIN_PASSPHRASE && passphrase === env.ADMIN_PASSPHRASE;
-}
-
 export async function POST(request: Request) {
-  if (!requireAdmin(request)) {
+  try {
+    requireAdmin(request);
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
     return NextResponse.json(
       { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
       { status: 401 }

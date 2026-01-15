@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rate &amp; Review - Letterboxd Clone</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d59f2",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101623",
+                        "surface-dark": "#182234",
+                        "surface-hover": "#222f49",
+                        "text-muted": "#90a4cb",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for text area */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #222f49;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col font-display">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#222f49] bg-white dark:bg-[#101623] px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-slate-900 dark:text-white">
+<div class="size-8 text-slate-900 dark:text-white">
+<svg class="size-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Letterboxd Clone</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 dark:text-[#90a4cb] flex border-none bg-slate-100 dark:bg-[#222f49] items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-slate-100 dark:bg-[#222f49] focus:border-none h-full placeholder:text-slate-500 dark:placeholder:text-[#90a4cb] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search films..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden lg:flex items-center gap-9">
+<a class="text-slate-900 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Films</a>
+<a class="text-slate-900 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Lists</a>
+<a class="text-slate-900 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Members</a>
+<a class="text-slate-900 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Journal</a>
+</nav>
+<button class="flex items-center justify-center overflow-hidden rounded-lg size-10 bg-slate-100 dark:bg-[#222f49] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#2c3b59] transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-[#222f49]" data-alt="User profile avatar showing a stylized portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQglfz3dUJI_Hj5PRmGZgUGkfhEdkPPbQUo6c-GYW08SzKoFq8fAQ7tfHihSDT9PtOArOib5EdMPvlyeXWcP03gPK8JapRBU5Ox3M0kvoGsnhIFEQFbcrK6DqFfB18ZHzFoT0BEFef6pJpCU65PZsE4sWoAzk6Fbilzjkbhi1707xKtiqFuXvrYM7-lzGgS3-f_NlsoF0FaflkpXua_ApFanKePcZZIQrDd1E-NxiqwSjfDymSRfT6ERVm9BovPwkvsPZBsNnUvQ");'></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col max-w-[1024px] w-full gap-8">
+<!-- Page Heading -->
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">I've watched...</h1>
+<p class="text-slate-500 dark:text-[#90a4cb] text-sm font-normal">Tell us what you thought of this film.</p>
+</div>
+<!-- Two Column Layout: Poster/Details & Review Form -->
+<div class="flex flex-col lg:flex-row gap-8 items-start">
+<!-- Left Column: Movie Card -->
+<div class="w-full lg:w-[300px] shrink-0 flex flex-col gap-4">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-slate-200 dark:border-transparent">
+<!-- Poster -->
+<div class="w-full aspect-[2/3] bg-center bg-cover rounded-lg shadow-md mb-4 relative overflow-hidden group" data-alt="Movie poster for Inception showing city bending" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAzbZjAPyIIxDICFSyFg01qw5p9IN5OfFtnpjH568QBpf-49EM4zG5ufp5-_NxvGjdUkH3iekQLNErmybTwyVmz3uD52lWAizLIrz8E8l9MqD68x7gPsq979mqMsoFO3qOE9OTIrolW4SdWuv5FgVi4T28p5LNRMWNiPZ9ktUFYYY4dBRu_ZT2qKu9jBjwouuDu15TNGyj-kXZrvTnemB_8HjZw2xkWZHGssj1sRnMCJVv_3cLNEMxxivUqui9MmYLqs6Ey-s07Xg");'>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-primary hover:bg-primary/90 text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">Change Film</button>
+</div>
+</div>
+<!-- Movie Info -->
+<div class="flex flex-col gap-1 text-center">
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight">Inception</h2>
+<p class="text-slate-500 dark:text-[#90a4cb] text-sm">2010 • Directed by Christopher Nolan</p>
+</div>
+</div>
+<!-- Quick Metadata -->
+<div class="bg-white dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-slate-200 dark:border-transparent flex flex-col gap-3">
+<!-- Watched Date -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#90a4cb]">Date Watched</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-[#222f49] border-slate-200 dark:border-none text-slate-900 dark:text-white focus:ring-1 focus:ring-primary focus:outline-none" type="date" value="2023-10-27"/>
+</div>
+</div>
+<div class="h-px bg-slate-200 dark:bg-[#2c3b59] my-1"></div>
+<!-- Like Toggle -->
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="text-slate-400 group-hover:text-pink-500 transition-colors dark:text-[#90a4cb]">
+<span class="material-symbols-outlined text-[24px]">favorite</span>
+</div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Like this film</span>
+</div>
+<label class="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full border-none bg-slate-200 dark:bg-[#222f49] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-pink-600 transition-colors">
+<div class="h-full w-[20px] rounded-full bg-white shadow-sm transition-all"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<!-- Contains Spoilers -->
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="text-slate-400 group-hover:text-amber-500 transition-colors dark:text-[#90a4cb]">
+<span class="material-symbols-outlined text-[24px]">visibility_off</span>
+</div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Contains spoilers</span>
+</div>
+<label class="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full border-none bg-slate-200 dark:bg-[#222f49] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-amber-600 transition-colors">
+<div class="h-full w-[20px] rounded-full bg-white shadow-sm transition-all"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Right Column: Review Input -->
+<div class="flex-1 flex flex-col gap-6 w-full">
+<!-- Rating Bar -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-sm border border-slate-200 dark:border-transparent">
+<label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#90a4cb] mb-3">Rate this film</label>
+<div class="flex items-center gap-1 group/rating">
+<!-- Star 1 -->
+<button class="p-1 text-slate-300 dark:text-[#2c3b59] hover:text-primary hover:!text-primary peer-hover:text-primary transition-colors focus:outline-none focus:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">star</span>
+</button>
+<!-- Star 2 -->
+<button class="p-1 text-slate-300 dark:text-[#2c3b59] hover:text-primary hover:!text-primary peer-hover:text-primary transition-colors focus:outline-none focus:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">star</span>
+</button>
+<!-- Star 3 -->
+<button class="p-1 text-slate-300 dark:text-[#2c3b59] hover:text-primary hover:!text-primary peer-hover:text-primary transition-colors focus:outline-none focus:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">star</span>
+</button>
+<!-- Star 4 -->
+<button class="p-1 text-slate-300 dark:text-[#2c3b59] hover:text-primary hover:!text-primary peer-hover:text-primary transition-colors focus:outline-none focus:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">star</span>
+</button>
+<!-- Star 5 -->
+<button class="p-1 text-slate-300 dark:text-[#2c3b59] hover:text-primary hover:!text-primary peer-hover:text-primary transition-colors focus:outline-none focus:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">star</span>
+</button>
+<span class="ml-4 text-sm font-medium text-slate-400 dark:text-[#5a6b8c]">No rating</span>
+</div>
+</div>
+<!-- Review Text Area -->
+<div class="bg-white dark:bg-surface-dark flex flex-col rounded-xl shadow-sm border border-slate-200 dark:border-transparent flex-1 min-h-[400px]">
+<div class="flex items-center gap-2 p-3 border-b border-slate-100 dark:border-[#222f49] overflow-x-auto">
+<button class="p-2 rounded hover:bg-slate-100 dark:hover:bg-[#222f49] text-slate-500 dark:text-[#90a4cb] transition-colors" title="Bold">
+<span class="material-symbols-outlined text-[20px]">format_bold</span>
+</button>
+<button class="p-2 rounded hover:bg-slate-100 dark:hover:bg-[#222f49] text-slate-500 dark:text-[#90a4cb] transition-colors" title="Italic">
+<span class="material-symbols-outlined text-[20px]">format_italic</span>
+</button>
+<div class="w-px h-5 bg-slate-200 dark:bg-[#222f49] mx-1"></div>
+<button class="p-2 rounded hover:bg-slate-100 dark:hover:bg-[#222f49] text-slate-500 dark:text-[#90a4cb] transition-colors" title="Quote">
+<span class="material-symbols-outlined text-[20px]">format_quote</span>
+</button>
+<button class="p-2 rounded hover:bg-slate-100 dark:hover:bg-[#222f49] text-slate-500 dark:text-[#90a4cb] transition-colors" title="Link">
+<span class="material-symbols-outlined text-[20px]">link</span>
+</button>
+</div>
+<div class="relative flex-1 p-4">
+<textarea class="w-full h-full bg-transparent border-none resize-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 text-base leading-relaxed" placeholder="Express your thoughts on the film... What stood out? How was the acting, direction, or story?"></textarea>
+</div>
+<!-- Tags Input -->
+<div class="p-4 border-t border-slate-100 dark:border-[#222f49]">
+<div class="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-[#101623] rounded-lg p-2 border border-slate-200 dark:border-[#2c3b59] focus-within:ring-1 focus-within:ring-primary transition-all">
+<div class="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                                    sci-fi
+                                    <button class="hover:text-primary/70"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                                    masterpiece
+                                    <button class="hover:text-primary/70"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<input class="bg-transparent border-none text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#5a6b8c] focus:ring-0 p-1 min-w-[120px] flex-1" placeholder="Add tags..."/>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex justify-end gap-4 pb-8">
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-600 dark:text-[#90a4cb] hover:bg-slate-200 dark:hover:bg-[#222f49] transition-colors">
+                            Cancel
+                        </button>
+<button class="px-8 py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-blue-600 shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                            Save Review
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

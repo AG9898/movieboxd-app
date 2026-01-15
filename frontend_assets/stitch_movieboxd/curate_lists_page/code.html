@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Curate List - Letterboxd Clone</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#0d59f2",
+              "background-light": "#f5f6f8",
+              "background-dark": "#101622",
+              "surface-dark": "#182234",
+              "surface-border": "#314368",
+              "text-secondary": "#90a4cb",
+            },
+            fontFamily: {
+              "display": ["Spline Sans", "Noto Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white antialiased min-h-screen flex flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-[#222f49] bg-white dark:bg-[#101623]/95 backdrop-blur-md px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 dark:text-white">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C12.95 4 4 12.95 4 24C4 35.05 12.95 44 24 44C35.05 44 44 35.05 44 24C44 12.95 35.05 4 24 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40Z" fill="currentColor" fill-opacity="0.2"></path>
+<path d="M24 12C17.37 12 12 17.37 12 24C12 30.63 17.37 36 24 36C30.63 36 36 30.63 36 24C36 17.37 30.63 12 24 12ZM24 32C19.58 32 16 28.42 16 24C16 19.58 19.58 16 24 16C28.42 16 32 19.58 32 24C32 28.42 28.42 32 24 32Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">CineTrack</h2>
+</div>
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-gray-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-gray-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Films</a>
+<a class="text-primary text-sm font-bold" href="#">Lists</a>
+<a class="text-gray-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Profile</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64 group">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-gray-100 dark:bg-[#222f49] group-focus-within:ring-2 group-focus-within:ring-primary/50 transition-all">
+<div class="text-gray-500 dark:text-[#90a4cb] flex items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-[#90a4cb] px-3 text-sm" placeholder="Search films..."/>
+</div>
+</label>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary cursor-pointer" data-alt="User profile avatar showing a stylized silhouette" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDbvGlbs6KmGkEUHDVMbWY0fO2fnDohQ-P400L4l9TgNH96h58-6qpoUgkO62zNW_f95wUVAmi3OgwYuAOoRQNivoof2ri8Ro2mfNcWFoBUwiDMfyKCveSfucmqeGY5cXCGtX6h_TFq-f_-c6RJh3lV4-MPAvCSQTOh6YJn1pp3xNyyZC0BtPguNUJc54grLXudQ8mcpWN7IifCTQrlQyocZ6H94h2qdD_3gT8NnCrejtj0BpXlQVsK-lm8EJT3LgA6OsPkQp_-dQ");'></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-5xl flex flex-col gap-8">
+<!-- List Metadata Editor -->
+<section class="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-surface-border/30">
+<div class="mb-6">
+<h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Edit List Details</h1>
+<p class="text-gray-500 dark:text-text-secondary text-sm">Curate and manage your movie collections.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+<label class="flex flex-col gap-2">
+<span class="text-sm font-medium text-gray-700 dark:text-white">List Name</span>
+<input class="w-full rounded-xl border-gray-300 dark:border-surface-border bg-gray-50 dark:bg-[#101623] text-gray-900 dark:text-white focus:border-primary focus:ring-primary p-3 h-12" type="text" value="Sci-Fi Masterpieces of the 80s"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-medium text-gray-700 dark:text-white">Privacy</span>
+<div class="relative">
+<select class="w-full rounded-xl border-gray-300 dark:border-surface-border bg-gray-50 dark:bg-[#101623] text-gray-900 dark:text-white focus:border-primary focus:ring-primary p-3 h-12 appearance-none">
+<option value="public">Public - Visible to everyone</option>
+<option value="friends">Friends only</option>
+<option value="private">Private</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-gray-500 pointer-events-none">expand_more</span>
+</div>
+</label>
+</div>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-medium text-gray-700 dark:text-white">Description</span>
+<textarea class="w-full rounded-xl border-gray-300 dark:border-surface-border bg-gray-50 dark:bg-[#101623] text-gray-900 dark:text-white focus:border-primary focus:ring-primary p-3 min-h-[100px] resize-y" placeholder="Add a description...">A collection of the most influential science fiction films released between 1980 and 1989. Synthwave soundtracks mandatory.</textarea>
+</label>
+</section>
+<!-- Curator Workspace -->
+<section class="flex flex-col gap-4">
+<!-- Toolbar -->
+<div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-surface-dark p-4 rounded-xl border border-gray-200 dark:border-surface-border/30">
+<div class="flex-1 w-full md:w-auto relative group">
+<span class="material-symbols-outlined absolute left-3 top-3 text-primary text-[24px]">add_circle</span>
+<input class="w-full pl-11 pr-4 h-12 rounded-lg bg-gray-50 dark:bg-[#101623] border-gray-300 dark:border-surface-border text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-text-secondary transition-all" placeholder="Search for a film to add..." type="text"/>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto justify-end">
+<div class="relative min-w-[140px]">
+<select class="w-full h-10 pl-3 pr-8 text-sm rounded-lg border-gray-300 dark:border-surface-border bg-gray-50 dark:bg-[#101623] text-gray-700 dark:text-text-secondary focus:border-primary focus:ring-primary appearance-none cursor-pointer">
+<option>Custom Order</option>
+<option>Release Date</option>
+<option>My Rating</option>
+<option>Alphabetical</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 text-gray-500 text-[18px] pointer-events-none">sort</span>
+</div>
+<div class="flex bg-gray-100 dark:bg-[#101623] rounded-lg p-1 border border-gray-200 dark:border-surface-border">
+<button class="p-1.5 rounded-md bg-white dark:bg-surface-dark shadow-sm text-primary">
+<span class="material-symbols-outlined text-[20px]">view_list</span>
+</button>
+<button class="p-1.5 rounded-md text-gray-500 dark:text-text-secondary hover:text-gray-900 dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Movie List -->
+<div class="space-y-3" id="movie-list">
+<!-- Item 1 -->
+<div class="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-surface-border/30 rounded-xl hover:border-primary/50 transition-colors shadow-sm relative">
+<!-- Drag Handle (Desktop) -->
+<div class="hidden sm:flex text-gray-400 cursor-grab hover:text-primary active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<!-- Rank -->
+<div class="text-3xl font-bold text-gray-200 dark:text-white/10 w-12 text-center select-none font-display">01</div>
+<!-- Poster -->
+<div class="shrink-0 w-16 h-24 rounded-lg bg-gray-800 bg-cover bg-center shadow-md relative overflow-hidden group/poster" data-alt="Blade Runner movie poster" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMJdx4rd518YlNZNgsxjV8dk_a-PAjpYs1y-wvPsloQuDJTZ0Omrf2At1BvZum1KUyMVCmkxNrkCmHFbb5DEGvcwnMnI9aawCE3JWF5flUJdjAMh3vzot-LI_VCDdazR_abPdwRUQYTr7K9Vqg8QOdtpz1ApDvPH7YqLUfDiO-Ilgd2gaG9n8uy3BP72aCelhbAIZhkJhtPZ0ei-L2mAKbQG0Vy1XPVR-CGLdWgASGqaehUmhnWMHOYR_2GtImm_5hmCbsEv-ZRA');">
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover/poster:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white">open_in_new</span>
+</div>
+</div>
+<!-- Details -->
+<div class="flex-1 flex flex-col gap-1 w-full text-center sm:text-left">
+<div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 justify-center sm:justify-start">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Blade Runner</h3>
+<span class="text-sm text-gray-500 dark:text-text-secondary">(1982)</span>
+</div>
+<div class="flex items-center gap-1 justify-center sm:justify-start text-yellow-500">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+</div>
+<input class="mt-2 w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 placeholder:text-gray-400 focus:ring-0 focus:border-primary px-0 py-1 transition-colors" placeholder="Add a note on why this film is included..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex sm:flex-col gap-2 items-center">
+<button class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors" title="Remove from list">
+<span class="material-symbols-outlined">delete</span>
+</button>
+<button class="sm:hidden p-2 text-gray-400 hover:text-primary transition-colors cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-surface-border/30 rounded-xl hover:border-primary/50 transition-colors shadow-sm">
+<div class="hidden sm:flex text-gray-400 cursor-grab hover:text-primary active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="text-3xl font-bold text-gray-200 dark:text-white/10 w-12 text-center select-none font-display">02</div>
+<div class="shrink-0 w-16 h-24 rounded-lg bg-gray-800 bg-cover bg-center shadow-md" data-alt="The Thing movie poster" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpGz9460GWN5Yg8Gwb-R2Unu5AKqg0Xa41G7QGXaLK6xx1GCKFomTfNwXmHVGQhPvNmwrUiYkb3wFKE4cIuzu5y7hDLwanf0_5-U7vJwdo5lEB4_QrjWG0fga7QMWtgoN_02X9vWxhkECgUceEBwHYuUdTy538GfcCQTL9sqf4Lz_1lS7DOGhgbEQet1wEmarY9JfZ0yeSMd984yucsSIUdV-rbCOtiSfNpvhZ59rOdM1hSFs8-wmrjUUKSA7RW48EC3seVhxrPg');"></div>
+<div class="flex-1 flex flex-col gap-1 w-full text-center sm:text-left">
+<div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 justify-center sm:justify-start">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">The Thing</h3>
+<span class="text-sm text-gray-500 dark:text-text-secondary">(1982)</span>
+</div>
+<div class="flex items-center gap-1 justify-center sm:justify-start text-yellow-500">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] text-gray-300 dark:text-gray-600">star</span>
+</div>
+<input class="mt-2 w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 placeholder:text-gray-400 focus:ring-0 focus:border-primary px-0 py-1 transition-colors" placeholder="Add a note..." type="text" value="Practical effects hold up perfectly."/>
+</div>
+<div class="flex sm:flex-col gap-2 items-center">
+<button class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors" title="Remove from list">
+<span class="material-symbols-outlined">delete</span>
+</button>
+<button class="sm:hidden p-2 text-gray-400 hover:text-primary transition-colors cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-surface-border/30 rounded-xl hover:border-primary/50 transition-colors shadow-sm">
+<div class="hidden sm:flex text-gray-400 cursor-grab hover:text-primary active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="text-3xl font-bold text-gray-200 dark:text-white/10 w-12 text-center select-none font-display">03</div>
+<div class="shrink-0 w-16 h-24 rounded-lg bg-gray-800 bg-cover bg-center shadow-md" data-alt="Aliens movie poster" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAOPNa8RHdxDlfOrmBV4HF0lAUvQmlE_6Vx_6uK2jFhbku5ltTSsnSkR9mOvdMuvX_-r9ZhQU74rdU9L-renJio76yhkf8-hSQUja_6G0d0x0mtrvFN2uJbYsEs280FIJgnsaocDjTQqdn6OnhHL7IU2KX3p9Gl8EWNTOJrmcoio5-yzpA-mPW1EMIc9hbbJ37MAmDcXKzeyrjmvkK5dWxdBFXQ5z7wZqQh_rlvCLZMCzBSnId1A6oUUxqnnrZLQ1qIKwmQzWFYVg');"></div>
+<div class="flex-1 flex flex-col gap-1 w-full text-center sm:text-left">
+<div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 justify-center sm:justify-start">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Aliens</h3>
+<span class="text-sm text-gray-500 dark:text-text-secondary">(1986)</span>
+</div>
+<div class="flex items-center gap-1 justify-center sm:justify-start text-yellow-500">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star_half</span>
+</div>
+<input class="mt-2 w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 placeholder:text-gray-400 focus:ring-0 focus:border-primary px-0 py-1 transition-colors" placeholder="Add a note on why this film is included..." type="text"/>
+</div>
+<div class="flex sm:flex-col gap-2 items-center">
+<button class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors" title="Remove from list">
+<span class="material-symbols-outlined">delete</span>
+</button>
+<button class="sm:hidden p-2 text-gray-400 hover:text-primary transition-colors cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</button>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-surface-border/30 rounded-xl hover:border-primary/50 transition-colors shadow-sm">
+<div class="hidden sm:flex text-gray-400 cursor-grab hover:text-primary active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="text-3xl font-bold text-gray-200 dark:text-white/10 w-12 text-center select-none font-display">04</div>
+<div class="shrink-0 w-16 h-24 rounded-lg bg-gray-800 bg-cover bg-center shadow-md" data-alt="RoboCop movie poster" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD51OLYteZxG0QP_2Qz-5ZHlss-3rsT6BXIpoGlZ9tiD199RftaDlGwfnImPxmnYfTcWWrPnXPd4aYuiTDkYpJ2gKx_ZNvMEEuv3vhl6GPWXWvkLdF5_SKl43toZQgIG8WMFBWphF2h4OK5YTfxat9th-KhuLG9IsS9RVDiAFKN1kN7l1w0qpaqLFdcpcafchyoF0M5sYRYwhMnZAZ9svn4WUWmxTCVatwEAF8znFjvp_b33f6XDJw0J858-9f_oU8QwiHGK5xIRw');"></div>
+<div class="flex-1 flex flex-col gap-1 w-full text-center sm:text-left">
+<div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 justify-center sm:justify-start">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">RoboCop</h3>
+<span class="text-sm text-gray-500 dark:text-text-secondary">(1987)</span>
+</div>
+<div class="flex items-center gap-1 justify-center sm:justify-start text-yellow-500">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] text-gray-300 dark:text-gray-600">star</span>
+</div>
+<input class="mt-2 w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 placeholder:text-gray-400 focus:ring-0 focus:border-primary px-0 py-1 transition-colors" placeholder="Add a note on why this film is included..." type="text"/>
+</div>
+<div class="flex sm:flex-col gap-2 items-center">
+<button class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors" title="Remove from list">
+<span class="material-symbols-outlined">delete</span>
+</button>
+<button class="sm:hidden p-2 text-gray-400 hover:text-primary transition-colors cursor-grab active:cursor-grabbing">
+<span class="material-symbols-outlined">drag_indicator</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State Suggestion (Visual only) -->
+<div class="mt-4 border-2 border-dashed border-gray-300 dark:border-surface-border rounded-xl p-8 flex flex-col items-center justify-center text-center gap-2 hover:bg-gray-50 dark:hover:bg-surface-dark/50 transition-colors cursor-pointer group">
+<div class="size-12 rounded-full bg-gray-100 dark:bg-surface-border/50 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</div>
+<p class="text-gray-900 dark:text-white font-medium">Add more films</p>
+<p class="text-sm text-gray-500 dark:text-text-secondary">Search above or drag films here from your watchlist</p>
+</div>
+</section>
+</div>
+</main>
+<!-- Sticky Action Bar -->
+<div class="sticky bottom-0 z-40 w-full bg-white dark:bg-surface-dark border-t border-gray-200 dark:border-surface-border/30 px-6 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+<div class="max-w-5xl mx-auto flex items-center justify-between">
+<div class="hidden sm:flex items-center gap-2 text-sm text-gray-500 dark:text-text-secondary">
+<span class="material-symbols-outlined text-orange-400 text-[18px]">edit_note</span>
+<span>Unsaved changes</span>
+</div>
+<div class="flex items-center gap-4 w-full sm:w-auto justify-end">
+<button class="px-6 h-10 rounded-lg text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                    Delete List
+                </button>
+<button class="px-4 h-10 rounded-lg text-sm font-medium text-gray-600 dark:text-white bg-gray-100 dark:bg-[#222f49] hover:bg-gray-200 dark:hover:bg-[#314368] transition-colors">
+                    Preview
+                </button>
+<button class="px-6 h-10 rounded-lg text-sm font-bold text-white bg-primary hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all transform active:scale-95">
+                    Save Changes
+                </button>
+</div>
+</div>
+</div>
+</body></html>

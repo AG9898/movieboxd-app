@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FilmTrack - Your Life in Film</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d59f2",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1a2233",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101622; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222f49; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0d59f2; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased overflow-x-hidden">
+<!-- Main Container -->
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-[#222f49] bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
+<!-- Logo & Brand -->
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-2 transition-opacity hover:opacity-80" href="#">
+<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+<span class="material-symbols-outlined text-[20px]">movie</span>
+</div>
+<span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">FilmTrack</span>
+</a>
+</div>
+<!-- Search Bar (Desktop) -->
+<div class="hidden max-w-md flex-1 px-8 md:flex">
+<div class="relative w-full group">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-slate-400">search</span>
+</div>
+<input class="block w-full rounded-lg border-none bg-slate-200 dark:bg-[#222f49] py-2 pl-10 pr-3 text-sm placeholder-slate-500 focus:border-primary focus:bg-white dark:focus:bg-[#2a3a5a] focus:ring-2 focus:ring-primary/50 transition-all duration-200 text-slate-900 dark:text-white" placeholder="Search films, lists, members..." type="text"/>
+</div>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4">
+<nav class="hidden gap-6 md:flex">
+<a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white transition-colors" href="#">Films</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white transition-colors" href="#">Journal</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white transition-colors" href="#">Members</a>
+</nav>
+<div class="flex items-center gap-2 pl-2">
+<button class="hidden rounded-lg px-4 py-2 text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-[#222f49] transition-colors md:block">
+                            Log In
+                        </button>
+<button class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-transform hover:scale-105 hover:bg-blue-600 active:scale-95 shadow-lg shadow-blue-900/20">
+<span class="material-symbols-outlined text-[18px]">list</span>
+<span class="hidden sm:inline">My Lists</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1">
+<!-- Hero Section -->
+<section class="relative mx-auto mt-6 max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<div class="relative overflow-hidden rounded-2xl bg-surface-dark shadow-2xl">
+<!-- Background Image -->
+<div class="absolute inset-0 z-0">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-[20s] hover:scale-105" data-alt="Dark cinema theater interior with empty red seats and screen light" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDbnBJieQ09Go5Zsy3V26zjD5Dr7I9SblUWw-LOvfnfOF8PcwDTyV6FCw2xUse3NdSu3cpnt3Wi_yJVebyzKEUBaVTeFJvy6lC4dRUum184D3wk54XgwWi-2geQH9eAQvgDgSFcOxnxWzk5V8j9oAzmMw86ZwLT-HYVelAseu5DQeP1ukXMRygqYzkV6OCMlhDu6HziAqUewB-oqrvRUJxglN0lBjYcgt68iYRvt31xeO4ZKZ5Jh_8vTARUSSm5U38rQUpKat8Jtw');"></div>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-background-dark/90 via-transparent to-transparent"></div>
+</div>
+<!-- Content -->
+<div class="relative z-10 flex min-h-[480px] flex-col justify-center px-6 py-12 sm:px-12 lg:px-16">
+<div class="max-w-2xl space-y-6">
+<h1 class="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-sm">
+                                Your Life in Film
+                            </h1>
+<p class="text-lg text-slate-300 sm:text-xl font-light max-w-lg leading-relaxed">
+                                The social network for film lovers. Track the films you’ve watched. Save those you want to see. Tell your friends what’s good.
+                            </p>
+<div class="flex flex-col gap-3 sm:flex-row pt-4">
+<button class="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-base font-bold text-white transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-primary/30">
+                                    Start Logging
+                                </button>
+<button class="inline-flex h-12 items-center justify-center rounded-lg bg-white/10 px-8 text-base font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20">
+                                    Take a Tour
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Highlights (New Section) -->
+<section class="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+<!-- Feature 1 -->
+<div class="group rounded-xl bg-surface-dark p-6 transition-colors hover:bg-[#222f49] border border-[#222f49]">
+<div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/20 text-green-400">
+<span class="material-symbols-outlined">visibility</span>
+</div>
+<h3 class="mb-2 text-lg font-bold text-white">Track Films</h3>
+<p class="text-sm text-slate-400">Keep a diary of every film you watch. Add the date, your rating, and personal notes.</p>
+</div>
+<!-- Feature 2 -->
+<div class="group rounded-xl bg-surface-dark p-6 transition-colors hover:bg-[#222f49] border border-[#222f49]">
+<div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/20 text-orange-400">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+<h3 class="mb-2 text-lg font-bold text-white">Rate &amp; Review</h3>
+<p class="text-sm text-slate-400">Share your opinion with a 5-star rating system and write in-depth reviews for the community.</p>
+</div>
+<!-- Feature 3 -->
+<div class="group rounded-xl bg-surface-dark p-6 transition-colors hover:bg-[#222f49] border border-[#222f49]">
+<div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/20 text-blue-400">
+<span class="material-symbols-outlined">format_list_bulleted</span>
+</div>
+<h3 class="mb-2 text-lg font-bold text-white">Curate Lists</h3>
+<p class="text-sm text-slate-400">Compile your favorites, genre highlights, or watchlists and share them with your friends.</p>
+</div>
+</div>
+</section>
+<!-- Trending Section -->
+<section class="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between pb-6">
+<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Popular this week</h2>
+<a class="group flex items-center text-sm font-medium text-primary hover:text-blue-400" href="#">
+                        View all 
+                        <span class="material-symbols-outlined ml-1 text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+<!-- Movie Card 1 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Movie poster for a moody cinematic film" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrG6lg1cjsVQ6O0mExm4yQzvHsmp0QTNS7xf861NKS7v_UMpI-09ol0FMdoIPUIrTT27hJ41bIRYRWnesI8FqklxDb_yxQm3LgFfC_ti4B731w6nyhKlUSu63MUZmeTB03RxAQwvUeI50ZVawHQct_0bWL57XotVcd-S9t66yYyUZUlnyjjqXzaTRVrm_hsw44IY6VWecvsLQzMjUcY_cbgEDhKLM4F9S8hGHeDMQFAhp-WMx4rUGgPC9qa-R1IDhqmZLCeVcj_w');">
+</div>
+<!-- Hover Overlay -->
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2 opacity-0 transition-opacity group-hover:opacity-100 absolute -bottom-6 left-0 w-full text-center lg:static lg:opacity-100 lg:text-left">
+<h3 class="truncate text-sm font-semibold text-white">Dune: Part Two</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.6</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 2 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Sci-fi movie poster with neon aesthetics" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDmoH8gHedz0UnLVWUzHBjy4kkkcClzjxIaHfPR_omodcOy6DPpdue9aMl2MefPy1zezBfthoFahjOht_9JFlQEPFQz_iog4HUGY7zhN16C2m_w-jCzGLK8zJyV-bJbDN0s1BVm2VW0eO1zJQnLEEpXnFCb8aI8e-q7CQhcPyzJ3bgiUJEFnMwDEzB-Qle9LQ0JBrdFgcnZanhrWywMbcUKKYVF6xut89B6aRD6JFelGW6UBt4FwGtv0q-DSjwyBqGAbFdyN99Uug');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<h3 class="truncate text-sm font-semibold text-white">Blade Runner 2049</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.8</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 3 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Abstract art movie poster with colorful shapes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD2dXi4NcSwJDmc8QJpjeNKjPbcWRIxJYVTAnwTg5vAJ0pHKFTO7mwEpDVV8VKIFoFeWtgdkhqVd54RtA-Cbt5RUK9_eQL0aBATt-L-77sRLbnl5SBOBJk8csxsyWQXzdPIuPiqYGpg1y63qWaWIonMgpnPISQlwFLrSutDHhFvUo2d8fc4Z7JmiWGLcuDzjjE31-DXhjsOb8EooSFFNwA5CtDxcS5jPdFReA_yQ0kVXPQbAMlBzpjnaS0DakB0ee9_yW0TPrYsVw');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<h3 class="truncate text-sm font-semibold text-white">Poor Things</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.2</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 4 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Drama movie poster showing a silhouette" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC1ND8dwWwha4zLFs3z7cED_z6qh8YslG8a7DzPXlWUC92FAI1drTo2zpyDo9IF4ehi1RP8JzKgwa41gKAGOgbk94swIDI929IkygYEGpIQlK9zAB3zbKm5qPC_8AdR2uT38nWxBG_vtGv31kZt-q7KCswtzIveGaVBZiqjEZzSM_bX4JK_5v0iUrDGLD6NJy3R4RT9ua1aWQ1YHh3umRL_wxANxA7WQvSkJqlo9YNV-IB5aGDIVdo2UxCG7afFPQOaF82noawZPg');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<h3 class="truncate text-sm font-semibold text-white">Oppenheimer</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.9</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 5 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Classic film poster with vintage aesthetic" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBleDaRiopdSs3DfSLvlUP0jlXW6IIfJvT-7Uq8zIZslwB-TvaMku35BKR64jpo2HyQiMyShDMutOMrzuGMlczrrkWFEIHgg2wzu_CcHFWXbYMGO9vyWnzrLG3p9wsdYtnyb0UMBVR1iLwuacsEvflRR49SmO_B0guokzsm-qhpAd3qwAqEtCRBtb-JqCFQU1M6ce9hRFGaw1nmOg4xQpdE3c_shmZLZS2u3BL98PESDGrCE_deL6D1VMeV-0SRZVmcsnEqL74CNg');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<h3 class="truncate text-sm font-semibold text-white">Past Lives</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.5</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 6 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Animated movie poster with vibrant colors" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_KOwE1UBUgeGcWoMOU3QSkg9_M1_RZNBxmpzcFyFqm2YSx-QjM8aeh4NuBpURmxaYgHZp6_LSej36REtaLQdmNmsB8FQNXknJYhY-RntVmCLs15DGHYZrBmUfJAdgH_kzXHrLyieDqqRrIrn9DrjXTSoOIdWi2wIP3HwG7X1XxNh1vc7SKBzdDL72gkEHZLVTCX-kpe2mYlAXeGrV_Own2s4HvUP2CMs-KOcFZ5xsvXPhARNC_p5JPVtykN5jQ9i0gd4e8F_J2g');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<h3 class="truncate text-sm font-semibold text-white">Spider-Verse</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current">star</span>
+<span class="text-xs text-slate-400">4.9</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- New Arrivals Section -->
+<section class="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8 mb-12">
+<div class="flex items-center justify-between pb-6">
+<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">New Arrivals</h2>
+</div>
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+<!-- Movie Card 7 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Dark thriller movie poster" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxJ-hVta1tSz79v3avJZjwwy17nux1xRdZL9KTo5FzB2L8RUx8lfcxpP0aVc6DjhomAlp_GHSun4edaV_afHrUXiS0t4uSwrnmJr-kzuJN6jTMMEJOxit4gBhKDP8dctcTLkmyABtwoBY05cUUxW8Un3cm8Y7MCy-ru4d-MyiY3VlBTkVK1jAmnC_U9dtTqV-N80xyMgGRJHsVni9oBg0X8t2MZ5wTHnDvvHMBNOpHhNKfLRfRfamM4K1u-05_1OgeIYxovS01cA');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Movie Card 8 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Indie film poster with pastel colors" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBnCjthqx6hUbKrLHVeYLkUIzI0w0L9n8r2bt2lJhfjKa_dhTNMYWcfzC31T4f5PlRqSESvfWnbTlyCNVsHOcYjJ1lWrvRDa20Ika9cYPXOiDIbbGou7w8N6HwBgmhVxH7O-GlAcggSUTe7eXgzQrYYe8aWUbXonTlCJIaZMtzl5ZLXqYUsTWxFtoZjCRrGCpA4YCYnHM5h92x7VGsUCNjVzZvaIlrR3dSrOoODyvIw4mbfDETlnIQ0JmvEqA3dPsAcmNWyX8DogA');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Movie Card 9 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Action movie poster with explosion background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBHoGApaTCC0lntIZUnfaO3uM73FfEzTACqFuN6HC7cMcY5e_OObZxyzoSPKUmddaaLkEwjq_6Xwzazb_aitX5S4BeOJFZ5_RyCAh9G2DOqPF3cITXs_zCvtJhpxfWfaRJERd81AbL-5WorJ4tMBnXN4QRQS6sCsPAc_Kr0Fz0DjLVxyT9bv1sLKc-FFI6-x-pisBhSt03mW30fByNaafV5ytJVZA3Z9dFyZGyArdvnkH9G4ZdJIlD7ZxS4mqFfp9zOHILEMgcNzA');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Movie Card 10 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Documentary film poster about nature" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAx9ewVCt6l5OdF7vCAXKCxcOZcva9ne1HWrdT04g49_ZByxIDXITvzwA2bPnj0mcgqyymtYryWVdfv1ZIdobsupqIfbftPV6qnqWb_on4FQ3_4kxwrfy23AnIr0gqRZ9jqjxBGdp1nFqMw9AkOHLEsHuPCKDUIc6IW9fWzVjBNHxqkOjE711XOGnvD0FJb1Ow3LbWwQwMTtaAgvUTbXQe5JN-UNNhU21kp60kRndFHwkfvu8XkoMm6LDHZr83Ce_tL9d1AGIfrdg');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Movie Card 11 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Comedy movie poster with bright yellow background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBOVccTkLEbfKzxsYIgLFqmAEN43XAkhc3bctZrVuW5Jj2VoyUzeSFOoWCPO7EeaJ2zuXKlcr6UhevpeqdvtuY5iQQkoa2qFSQdcBmtoGnduDZ-472jKRSf6t3EWGDisEiUL9twNT2hxCfYRlSgy-zOu3h8vtMrrfCspElBlwYOPevYZxFSPVApO4iNHTt2CbiD-PYdt6GYvIt4EmRbN-QWnzz8SZzQfYtVsQ5I1gyS18ALOLVv1aDFr_YKaignwrRFAmHrBLd1GQ');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Movie Card 12 -->
+<div class="group relative cursor-pointer">
+<div class="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-800 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/10">
+<div class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Horror movie poster with dark forest" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxwO8sK7ccSzTm5YL-5GaXEzlpadv8QMzyBRyBVQsyFWkSEcd-zehNtI44tDP3dDqv_VXisEG8KPL03lXf7rdlJ-Ju0rgfbz-dvuFzfRm6qF-65xDMokn0Bt8aiBkwK7MKn_5NjUSzExZa-eOMB2AA-xvmBQgV2kf3zkvNFvQrZZdh3IqfoN-mhY_y2e1ueDIuRHUzMM56-psjQavRmDhf0ZYlV1hAli9dYf4dDi9u1i7DcRBQkTcM7saxxFrk-UPjgCvlpbkLAw');">
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-white">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-slate-200 bg-surface-light dark:border-[#222f49] dark:bg-[#151c2b]">
+<div class="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+<div class="flex flex-col items-center justify-between gap-6 md:flex-row">
+<div class="flex items-center gap-2">
+<div class="flex h-6 w-6 items-center justify-center rounded bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+<span class="material-symbols-outlined text-[16px]">movie</span>
+</div>
+<span class="text-sm font-semibold text-slate-500 dark:text-slate-400">© 2023 FilmTrack</span>
+</div>
+<div class="flex gap-6 text-sm text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary transition-colors" href="#">About</a>
+<a class="hover:text-primary transition-colors" href="#">News</a>
+<a class="hover:text-primary transition-colors" href="#">Pro</a>
+<a class="hover:text-primary transition-colors" href="#">Apps</a>
+<a class="hover:text-primary transition-colors" href="#">Podcast</a>
+</div>
+<div class="flex gap-4">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="sr-only">Twitter</span>
+<svg class="h-5 w-5 fill-current" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path></svg>
+</a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="sr-only">Instagram</span>
+<svg class="h-5 w-5 fill-current" viewbox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

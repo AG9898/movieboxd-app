@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const query = url.searchParams.get("query")?.trim();
+  const query = url.searchParams.get("q")?.trim();
 
   const titles = await prisma.title.findMany({
     where: query
@@ -23,5 +23,5 @@ export async function GET(request: Request) {
     take: 50,
   });
 
-  return NextResponse.json({ ok: true, data: { titles } });
+  return NextResponse.json({ ok: true, data: titles });
 }
