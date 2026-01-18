@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedPrefixes = ["/reviews", "/review", "/lists", "/track"];
+const protectedPrefixes = ["/reviews", "/review", "/lists", "/track", "/to-watch"];
 
 function needsProtection(pathname: string) {
   return protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
@@ -33,5 +33,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/reviews", "/track", "/review/:path*", "/lists/:path*"],
+  matcher: ["/reviews", "/track", "/review/:path*", "/lists/:path*", "/to-watch"],
 };

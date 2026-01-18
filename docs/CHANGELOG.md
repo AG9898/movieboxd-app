@@ -92,6 +92,7 @@ This changelog follows the Keep a Changelog format.
 - Fixed (API): review detail handler now falls back to URL path parsing when params are missing.
 
 ### Fixed
+- Fixed (Auth): admin unlock redirect now uses 303 to avoid POSTing to `/reviews`.
 - Fixed (API): avoid const reassignment errors in catalog hydrate route.
 - Fixed (API): accept tmdbId from params or path fallback in title details endpoint.
 - Fixed (API): validate listId parsing for list detail and items endpoints.

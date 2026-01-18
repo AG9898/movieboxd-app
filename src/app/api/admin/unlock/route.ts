@@ -10,10 +10,10 @@ export async function POST(request: Request) {
     const url = new URL("/admin/unlock", request.url);
     url.searchParams.set("error", "1");
     url.searchParams.set("next", nextPath);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 303);
   }
 
-  const response = NextResponse.redirect(new URL(nextPath, request.url));
+  const response = NextResponse.redirect(new URL(nextPath, request.url), 303);
   response.cookies.set("ft_admin", expected, {
     httpOnly: true,
     sameSite: "lax",
