@@ -93,6 +93,7 @@ This changelog follows the Keep a Changelog format.
 - Fixed (API): validate listId parsing for list detail and items endpoints.
 - Fixed (UI): prevent list auto-save after delete to avoid invalid updates.
 - Fixed (UI): normalize list item media type mapping for list edit state typing.
+- Fixed (UI): guard list item rating rendering against undefined values.
 
 ### Removed
 - Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.

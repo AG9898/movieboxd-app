@@ -848,7 +848,7 @@ function formatReviewDate(value?: string | null) {
                       ) : null}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                      {item.reviewRating !== null ? (
+                      {item.reviewRating != null ? (
                         <>
                           <StarRow rating={item.reviewRating} />
                           {item.reviewDate ? (
