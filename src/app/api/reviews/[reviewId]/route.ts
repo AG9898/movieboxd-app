@@ -1,18 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 type RouteContext = {
-  params: {
-    reviewId: string;
-  };
+  params: Promise<{ reviewId: string }>;
 };
 
-export async function GET(request: Request, { params }: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   const url = new URL(request.url);
   const fallbackId = url.pathname.split("/").filter(Boolean).pop();
+  const params = await context.params;
   const reviewId = params?.reviewId ?? fallbackId;
   if (!reviewId || reviewId === "reviews" || reviewId === "api") {
     return NextResponse.json(
