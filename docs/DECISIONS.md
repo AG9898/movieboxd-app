@@ -39,6 +39,6 @@ Last updated: 2026-01-17
 
 ## Decision 7
 - Date: 2026-01-17
-- Decision: Reviews dashboard creates reviews (not diary entries).
-- Context: Recent activity should reflect actual review entries and feed the review detail flow.
+- Decision: Reviews dashboard creates reviews directly.
+- Context: Recent activity should reflect review entries and feed the review detail flow.
 - Consequences: Logging from the dashboard uses `POST /api/reviews`; recent items read from `GET /api/reviews`.

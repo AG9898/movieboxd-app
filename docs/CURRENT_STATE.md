@@ -23,10 +23,7 @@ Last updated: 2026-01-17
 - `GET /api/titles/{tmdbId}` - Fetch a hydrated title by TMDB ID and media type.
 - `GET /api/health/catalog` - Catalog API health check.
 - `GET /api/health/db` - DB connectivity check.
-- `GET /api/health/db-stats` - Counts for titles/diary/reviews/lists.
-- `GET /api/diary` - List recent diary entries (supports `month` + `year` filters).
-- `GET /api/diary/stats` - Aggregated diary counts and average rating.
-- `POST /api/diary/log` - Create a diary entry (admin-only).
+- `GET /api/health/db-stats` - Counts for titles/reviews/lists.
 - `POST /api/reviews` - Create a review with tags (admin-only).
 - `GET /api/reviews` - List reviews with title metadata and tags.
 - `GET /api/reviews/{reviewId}` - Fetch a single review with title metadata and tags.
@@ -45,6 +42,8 @@ Last updated: 2026-01-17
 - `src/app/reviews/page.tsx` implements the Reviews dashboard, hydrates titles, creates reviews, and lists recent reviews.
 - `src/app/reviews/[reviewId]/page.tsx` implements review detail view.
 - `src/app/review/[tmdbId]/page.tsx` implements Rate & Review and is wired to catalog + review APIs.
+- `src/app/my-reviews/page.tsx` implements the My Reviews list view.
+- `src/app/to-watch/page.tsx` implements the To Watch search and Watch Later list flow.
 - `src/app/track/page.tsx` redirects legacy `/track` traffic to `/reviews`.
 - `src/app/titles/[tmdbId]/page.tsx` implements hydrated title details.
 - `src/app/lists/page.tsx` implements the Lists index and list creation flow.

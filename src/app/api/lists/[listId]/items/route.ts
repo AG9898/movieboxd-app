@@ -48,11 +48,43 @@ export async function GET(
     where: { listId: listIdResult.data },
     orderBy: { rank: "asc" },
     include: {
-      title: true,
+      title: {
+        include: {
+          reviews: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
     },
   });
 
-  return NextResponse.json({ ok: true, data: items });
+  return NextResponse.json({
+    ok: true,
+    data: items.map((item) => ({
+      id: item.id,
+      rank: item.rank,
+      note: item.note,
+      title: {
+        tmdbId: item.title.tmdbId,
+        mediaType: item.title.mediaType,
+        title: item.title.title,
+        releaseDate: item.title.releaseDate,
+        posterPath: item.title.posterPath,
+      },
+      latestReview: item.title.reviews[0]
+        ? {
+            id: item.title.reviews[0].id,
+            rating:
+              item.title.reviews[0].rating === null
+                ? null
+                : Number(item.title.reviews[0].rating),
+            watchedOn: item.title.reviews[0].watchedOn,
+            createdAt: item.title.reviews[0].createdAt,
+          }
+        : null,
+    })),
+  });
 }
 
 export async function POST(

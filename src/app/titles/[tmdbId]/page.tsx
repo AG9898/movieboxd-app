@@ -111,6 +111,12 @@ export default function TitleDetailsPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/reviews">
                 Reviews
               </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/my-reviews">
+                My Reviews
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/to-watch">
+                To Watch
+              </Link>
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>

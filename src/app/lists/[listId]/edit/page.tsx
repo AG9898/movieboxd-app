@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -19,11 +20,14 @@ type ListItem = {
   id: string;
   title: string;
   year: number | null;
-  rating: number;
+  rating: number | null;
   posterUrl: string | null;
   note: string;
   tmdbId?: number;
   mediaType?: "movie" | "tv";
+  reviewId?: string;
+  reviewRating?: number | null;
+  reviewDate?: string | null;
 };
 
 const initialItems: ListItem[] = [];
@@ -79,7 +83,18 @@ export default function CurateListPage() {
   const lastSavedMeta = useRef<{ name: string; description: string; privacy: string } | null>(
     null
   );
-  const suppressAutoSave = useRef(false);
+const suppressAutoSave = useRef(false);
+
+function formatReviewDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
 
   const trimmedQuery = query.trim();
   const canSearch = trimmedQuery.length >= 2;
@@ -195,7 +210,7 @@ export default function CurateListPage() {
         const payload = (await response.json()) as
           | { ok: true; data: Array<{ id: string; rank: number; note: string | null; title: {
               tmdbId: number; mediaType: string; title: string; releaseDate: string | null; posterPath: string | null;
-            } }> }
+            }; latestReview: { id: string; rating: number | null; watchedOn: string | null; createdAt: string } | null }> }
           | { ok: false; error: { message?: string } };
 
         if (!response.ok || !payload.ok) {
@@ -203,18 +218,24 @@ export default function CurateListPage() {
         }
 
         if (!cancelled) {
-          const mapped = payload.data.map((item) => ({
+          const mapped = payload.data.map((item) => {
+            const reviewDate = item.latestReview?.watchedOn ?? item.latestReview?.createdAt ?? null;
+            return {
             id: item.id,
             title: item.title.title,
             year: item.title.releaseDate ? Number(item.title.releaseDate.slice(0, 4)) : null,
-            rating: 0,
+            rating: item.latestReview?.rating ?? null,
             posterUrl: item.title.posterPath
               ? `https://image.tmdb.org/t/p/w500${item.title.posterPath}`
               : null,
             note: item.note ?? "",
             tmdbId: item.title.tmdbId,
             mediaType: item.title.mediaType === "tv" ? "tv" : "movie",
-          }));
+            reviewId: item.latestReview?.id,
+            reviewRating: item.latestReview?.rating ?? null,
+            reviewDate,
+          };
+          });
           setItems(mapped);
           hasLoadedItems.current = true;
         }
@@ -282,27 +303,29 @@ export default function CurateListPage() {
       setToast("List ID missing.");
       return;
     }
+    const exists = items.some(
+      (item) => item.tmdbId === result.externalId && item.mediaType === result.mediaType
+    );
+    if (exists) {
+      setToast("Already in list.");
+      return;
+    }
     const tempId = `temp-${result.source}-${result.externalId}`;
     const rank = items.length + 1;
     setItems((current) => {
-      const exists = current.some(
-        (item) => item.tmdbId === result.externalId && item.mediaType === result.mediaType
-      );
-      if (exists) {
-        setToast("Already in list.");
-        return current;
-      }
       return [
         ...current,
         {
           id: tempId,
           title: result.title,
           year: result.year,
-          rating: 0,
+          rating: null,
           posterUrl: result.posterUrl,
           note: "",
           tmdbId: result.externalId,
           mediaType: result.mediaType,
+          reviewRating: null,
+          reviewDate: null,
         },
       ];
     });
@@ -310,6 +333,28 @@ export default function CurateListPage() {
     setResults([]);
 
     try {
+      const hydrateResponse = await fetch("/api/catalog/hydrate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
+        },
+        body: JSON.stringify({
+          source: result.source,
+          externalId: result.externalId,
+          mediaType: result.mediaType,
+        }),
+      });
+      const hydratePayload = (await hydrateResponse.json()) as
+        | { ok: true }
+        | { ok: false; error: { message?: string } };
+
+      if (!hydrateResponse.ok || !hydratePayload.ok) {
+        throw new Error(
+          hydratePayload.ok ? "Catalog hydrate failed." : hydratePayload.error?.message
+        );
+      }
+
       const response = await fetch(`/api/lists/${listId}/items`, {
         method: "POST",
         headers: {
@@ -338,6 +383,7 @@ export default function CurateListPage() {
       );
     } catch (addError) {
       setError(addError instanceof Error ? addError.message : "Add to list failed.");
+      setItems((current) => current.filter((item) => item.id !== tempId));
     }
   }
 
@@ -573,24 +619,30 @@ export default function CurateListPage() {
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
         <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+            <Link className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
                 <span className="text-xs font-semibold">ML</span>
               </div>
               <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <nav className="hidden gap-6 md:flex">
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
                 Home
-              </a>
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/reviews">
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/reviews">
                 Reviews
-              </a>
-              <a className="text-sm font-medium text-white" href="/lists">
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/my-reviews">
+                My Reviews
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/to-watch">
+                To Watch
+              </Link>
+              <Link className="text-sm font-medium text-white" href="/lists">
                 Lists
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
@@ -663,32 +715,30 @@ export default function CurateListPage() {
                 {error ? <span className="text-red-300">{error}</span> : null}
               </div>
               {results.length > 0 ? (
-                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <div className="mt-3 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 sm:mx-auto sm:max-w-[720px]">
                   {results.map((result) => (
-                    <Button
+                    <button
                       key={`${result.source}-${result.externalId}-${result.mediaType}`}
-                      variant="unstyled"
-                      size="none"
-                      className="flex items-center gap-3 rounded-lg border border-transparent bg-[var(--app-panel)] px-3 py-2 text-left text-slate-200 transition-colors hover:border-[var(--app-border-strong)]"
+                      className="grid w-full min-h-[64px] grid-cols-[56px_1fr] items-center justify-items-start gap-x-4 rounded-lg border border-transparent bg-[var(--app-panel)] px-3 py-2 text-left text-slate-200 transition-colors hover:border-[var(--app-border-strong)]"
                       onClick={() => handleAdd(result)}
                       type="button"
                     >
                       <div
-                        className="h-12 w-9 shrink-0 rounded bg-cover bg-center"
+                        className="h-14 w-14 shrink-0 overflow-hidden rounded bg-[var(--app-border)] bg-cover bg-center"
                         style={{
                           backgroundImage: result.posterUrl
                             ? `url('${result.posterUrl}')`
-                            : "none",
+                            : "var(--app-gradient-poster)",
                         }}
                       />
-                      <div className="min-w-0">
+                      <div className="flex min-w-0 flex-col justify-center">
                         <p className="truncate text-sm font-semibold">{result.title}</p>
-                        <p className="text-xs text-[var(--app-muted)]">
+                        <p className="truncate text-xs text-[var(--app-muted)]">
                           {result.year ? `${result.year} • ` : ""}
                           {result.mediaType.toUpperCase()}
                         </p>
                       </div>
-                    </Button>
+                    </button>
                   ))}
                 </div>
               ) : null}
@@ -777,7 +827,28 @@ export default function CurateListPage() {
                         <span className="text-sm text-[var(--app-muted)]">({item.year})</span>
                       ) : null}
                     </div>
-                    <StarRow rating={item.rating} />
+                    <div className="flex flex-wrap items-center gap-3">
+                      {item.reviewRating !== null ? (
+                        <>
+                          <StarRow rating={item.reviewRating} />
+                          {item.reviewDate ? (
+                            <span className="text-xs text-[var(--app-muted)]">
+                              Reviewed {formatReviewDate(item.reviewDate)}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className="text-xs text-[var(--app-muted)]">No review yet.</span>
+                      )}
+                      {item.tmdbId ? (
+                        <Link
+                          className="text-xs font-semibold text-[var(--app-primary)] transition-colors hover:text-white"
+                          href={`/review/${item.tmdbId}?mediaType=${item.mediaType ?? "movie"}`}
+                        >
+                          Write review
+                        </Link>
+                      ) : null}
+                    </div>
                     <input
                       className="mt-2 w-full border-0 border-b border-[var(--app-border-strong)] bg-transparent px-0 py-1 text-sm text-[#d7dde8] placeholder:text-[var(--app-muted)] focus:border-[var(--app-primary)] focus:ring-0"
                       placeholder="Add a note on why this film is included..."
@@ -823,15 +894,6 @@ export default function CurateListPage() {
               </div>
             ) : null}
 
-            <div className="mt-4 cursor-pointer rounded-xl border-2 border-dashed border-[var(--app-border-strong)] p-8 text-center transition-colors hover:bg-[var(--app-surface)]/50">
-              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--app-border-strong)]/50 text-[var(--app-primary)]">
-                +
-              </div>
-              <p className="font-medium text-white">Add more films</p>
-              <p className="text-sm text-[var(--app-muted)]">
-                Search above or drag films here from your watchlist
-              </p>
-            </div>
           </section>
         </div>
       </main>

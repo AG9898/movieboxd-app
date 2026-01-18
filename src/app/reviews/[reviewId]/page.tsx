@@ -1,6 +1,7 @@
 "use client";
 
 import { ButtonLink } from "@/components/ui/Button";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -117,24 +118,30 @@ export default function ReviewDetailPage() {
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
         <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+            <Link className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
                 <span className="text-xs font-semibold">ML</span>
               </div>
               <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <nav className="hidden gap-6 md:flex">
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
                 Home
-              </a>
-              <a className="text-sm font-medium text-white" href="/reviews">
+              </Link>
+              <Link className="text-sm font-medium text-white" href="/reviews">
                 Reviews
-              </a>
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/my-reviews">
+                My Reviews
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/to-watch">
+                To Watch
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
-              </a>
+              </Link>
             </nav>
           </div>
         </div>

@@ -1,7 +1,6 @@
 # API
 
 ## Planned changes
-- Extend diary log input to distinguish watched date vs logged date.
 - Expand list item payloads to include review metadata when available.
 
 ## GET /api/catalog/search
@@ -100,28 +99,6 @@ Response:
   ]
 }
 ```
-
-## GET /api/diary/stats
-
-Request:
-```http
-GET /api/diary/stats?month=1&year=2026
-```
-
-Response:
-```json
-{
-  "ok": true,
-  "data": {
-    "total": 42,
-    "yearCount": 12,
-    "monthCount": 3,
-    "avgRating": 3.8
-  }
-}
-```
-
-## POST /api/diary/log
 
 ## POST /api/reviews
 

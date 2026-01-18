@@ -5,8 +5,6 @@ const endpoints = [
   "/api/health/catalog",
   "/api/catalog/search?q=matrix&type=movie",
   "/api/titles?q=matrix",
-  "/api/diary?limit=1",
-  "/api/diary/stats",
   "/api/reviews?limit=1",
   "/api/lists",
 ];

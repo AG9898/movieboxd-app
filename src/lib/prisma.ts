@@ -7,7 +7,6 @@ if (!process.env.PRISMA_CLIENT_ENGINE_TYPE) {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 

@@ -9,10 +9,10 @@ This changelog follows the Keep a Changelog format.
 - Added (UI): Track Films page layout based on Stitch reference.
 - Added (UI): Rate & Review page layout based on Stitch reference.
 - Added (API): create reviews via `POST /api/reviews`.
-- Added (API): create diary entries via `POST /api/diary/log`.
+- Added (UI): My Reviews page with list-style review entries.
+- Added (UI): To Watch page with Watch Later list integration.
 - Added (UI/API): Curate Lists page layout with catalog search results.
 - Added (UI): Lists index page with list creation form.
-- Added (API): diary stats endpoint for Track page.
 - Added (API/UI): reviews list endpoint and Reviews page.
 - Added (UI): hydrated title details page.
 - Added (Scripts): API smoke test runner.
@@ -36,12 +36,26 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI): replace the default Next.js home page with a custom landing layout.
 - Changed (UI): align the landing page with Stitch reference layout and sections.
 - Changed (UI): update landing navigation to route Lists to `/lists`.
+- Changed (UI): add My Reviews to app navigation headers.
+- Changed (UI): add My Reviews to the landing page navigation.
+- Changed (UI): add To Watch to app navigation headers.
+- Changed (UI): add To Watch to the landing page navigation.
+- Changed (UI): normalize catalog search dropdown layout across app search dropdowns.
+- Changed (UI): remove the watched date input from the Reviews dashboard selection block.
+- Changed (UI): update the Reviews dashboard action button label and remove the Top Genres panel.
+- Changed (UI/API): stop sending watched date from the Reviews dashboard review creation.
+- Changed (UI): move Recent lists above the create form and make list cards clickable.
+- Changed (UI/API): auto-hydrate titles before adding list items in Curate Lists.
+- Changed (UI): remove the Add more films block from Curate Lists.
+- Changed (UI/API): show latest review info on list items and add Write review links.
+- Changed (UI): make landing feature cards clickable and add links to new pages.
+- Changed (UI): remove the New Arrivals section/components and simplify the landing footer.
+- Changed (Docs): add pre-deploy checklist items to `docs/to_do.md`.
 - Changed (UI): add header navigation links to Track, Review, and Curate Lists pages.
 - Changed (UI/API): auto-hydrate review titles on load when admin passphrase is provided.
 - Changed (UI): restore review search input for selecting titles.
 - Changed (UI): keep selected review title after save.
 - Changed (UI/API): validate list item notes and roll back on failed updates.
-- Changed (UI): load Track stats from diary stats endpoint.
 - Changed (UI): update nav links to point to Reviews list.
 - Changed (UI): link Reviews list items to title details page.
 - Changed (UI): add empty-state callouts for Track search, Review search, and Lists items.
@@ -51,11 +65,6 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI/API): wire Rate & Review search and save actions to catalog endpoints.
 - Changed (UI/API): submit reviews from the Rate & Review page to `POST /api/reviews`.
 - Changed (UI): add a success toast and reset the Rate & Review form after save.
-- Changed (UI/API): submit Track Films log entries to `POST /api/diary/log`.
-- Added (API): list recent diary entries via `GET /api/diary`.
-- Changed (UI/API): wire Track Films recent entries to diary API.
-- Changed (API): add month/year filters to `GET /api/diary`.
-- Changed (UI): wire "This Month" filter to diary API.
 - Changed (UI): de-duplicate catalog search results in Track/Review/Lists.
 - Changed (UI): remove unused header controls from Track/Review/Lists.
 - Changed (UI/API): load review title metadata from the titles endpoint.
@@ -85,7 +94,7 @@ This changelog follows the Keep a Changelog format.
 - Fixed (UI): prevent list auto-save after delete to avoid invalid updates.
 
 ### Removed
-- None.
+- Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.
 
 ### Security
 - None.

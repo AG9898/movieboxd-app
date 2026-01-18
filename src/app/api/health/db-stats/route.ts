@@ -6,9 +6,8 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const [titles, diaryEntries, reviews, lists] = await Promise.all([
+    const [titles, reviews, lists] = await Promise.all([
       prisma.title.count(),
-      prisma.diaryEntry.count(),
       prisma.review.count(),
       prisma.list.count(),
     ]);
@@ -17,7 +16,6 @@ export async function GET() {
       ok: true,
       data: {
         titles,
-        diaryEntries,
         reviews,
         lists,
       },

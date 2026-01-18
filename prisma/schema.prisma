@@ -31,27 +31,11 @@ model Title {
   popularity     Float?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  diaryEntries   DiaryEntry[]
   reviews        Review[]
   listItems      ListItem[]
 
   @@unique([tmdbId, mediaType])
   @@index([tmdbId])
-}
-
-model DiaryEntry {
-  id        String   @id @default(uuid())
-  titleId   String
-  title     Title    @relation(fields: [titleId], references: [id])
-  watchedOn DateTime @db.Date
-  rating    Decimal? @db.Decimal(2, 1)
-  liked     Boolean  @default(false)
-  rewatch   Boolean  @default(false)
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([titleId])
 }
 
 model Review {

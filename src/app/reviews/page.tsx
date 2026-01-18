@@ -15,13 +15,6 @@ type CatalogResult = {
   backdropUrl: string | null;
 };
 
-type DiaryStats = {
-  total: number;
-  yearCount: number;
-  monthCount: number;
-  avgRating: number;
-};
-
 type ReviewSummary = {
   id: string;
   title: {
@@ -47,18 +40,11 @@ type RecentEntry = {
   mediaType: "movie" | "tv";
   date: string;
   rating: number;
-  rewatch: boolean;
   image: string | null;
   body: string;
   liked: boolean;
   containsSpoilers: boolean;
 };
-
-const genreStats = [
-  { label: "Sci-Fi", value: 28, width: "w-[75%]" },
-  { label: "Drama", value: 15, width: "w-[50%]" },
-  { label: "Action", value: 8, width: "w-[30%]" },
-];
 
 function RatingStars({ rating }: { rating: number }) {
   return (
@@ -94,24 +80,12 @@ export default function ReviewsDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [adminPassphrase, setAdminPassphrase] = useState("");
-  const [watchedOn, setWatchedOn] = useState(() =>
-    new Date().toISOString().slice(0, 10)
-  );
   const [rating, setRating] = useState(0);
   const [liked, setLiked] = useState(false);
-  const [rewatch, setRewatch] = useState(false);
   const [notes, setNotes] = useState("");
   const [recentEntries, setRecentEntries] = useState<RecentEntry[]>([]);
   const [isRecentLoading, setIsRecentLoading] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
-  const [stats, setStats] = useState<DiaryStats>({
-    total: 0,
-    yearCount: 0,
-    monthCount: 0,
-    avgRating: 0,
-  });
-  const [isStatsLoading, setIsStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
 
   const trimmedQuery = query.trim();
   const canSearch = trimmedQuery.length >= 2;
@@ -128,58 +102,6 @@ export default function ReviewsDashboardPage() {
     const handle = setTimeout(() => setSuccessMessage(null), 4000);
     return () => clearTimeout(handle);
   }, [successMessage]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchStats = async () => {
-      setIsStatsLoading(true);
-      setStatsError(null);
-      try {
-        const now = new Date();
-        const url = new URL("/api/diary/stats", window.location.origin);
-        url.searchParams.set("month", String(now.getMonth() + 1));
-        url.searchParams.set("year", String(now.getFullYear()));
-        const response = await fetch(url.toString());
-        const payload = (await response.json()) as
-          | { ok: true; data: DiaryStats }
-          | { ok: false; error: { message?: string } };
-
-        if (!response.ok || !payload.ok) {
-          throw new Error(payload.ok ? "Failed to load stats." : payload.error?.message);
-        }
-
-        if (!cancelled) {
-          setStats(payload.data);
-        }
-      } catch (statsLoadError) {
-        if (!cancelled) {
-          setStatsError(
-            statsLoadError instanceof Error ? statsLoadError.message : "Failed to load stats."
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsStatsLoading(false);
-        }
-      }
-    };
-
-    fetchStats();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const statCards = useMemo(() => {
-    const avgRating = stats.avgRating ? stats.avgRating.toFixed(1) : "0.0";
-    return [
-      { label: "Total", value: stats.total.toLocaleString() },
-      { label: "This Year", value: stats.yearCount.toLocaleString() },
-      { label: "This Month", value: stats.monthCount.toLocaleString() },
-      { label: "Avg Rating", value: avgRating, delta: "/ 5", isAverage: true },
-    ];
-  }, [stats]);
 
   useEffect(() => {
     let cancelled = false;
@@ -214,7 +136,6 @@ export default function ReviewsDashboardPage() {
                   day: "2-digit",
                 }),
                 rating: Number.isNaN(ratingValue) ? 0 : ratingValue,
-                rewatch: false,
               image: entry.title.posterPath
                 ? `https://image.tmdb.org/t/p/w500${entry.title.posterPath}`
                 : null,
@@ -345,7 +266,6 @@ export default function ReviewsDashboardPage() {
         body: JSON.stringify({
           tmdbId: selected.externalId,
           mediaType: selected.mediaType,
-          watchedOn,
           rating: rating || undefined,
           containsSpoilers: false,
           liked,
@@ -354,13 +274,13 @@ export default function ReviewsDashboardPage() {
         }),
       });
 
-      const diaryPayload = (await reviewResponse.json()) as
+      const reviewPayload = (await reviewResponse.json()) as
         | { ok: true }
         | { ok: false; error: { message?: string } };
 
-      if (!reviewResponse.ok || !diaryPayload.ok) {
+      if (!reviewResponse.ok || !reviewPayload.ok) {
         throw new Error(
-          diaryPayload.ok ? "Review log failed." : diaryPayload.error?.message
+          reviewPayload.ok ? "Review log failed." : reviewPayload.error?.message
         );
       }
 
@@ -370,7 +290,6 @@ export default function ReviewsDashboardPage() {
       setResults([]);
       setRating(0);
       setLiked(false);
-      setRewatch(false);
       setNotes("");
     } catch (hydrateError) {
       setError(
@@ -388,24 +307,30 @@ export default function ReviewsDashboardPage() {
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
         <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+            <Link className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
                 <span className="text-xs font-semibold">ML</span>
               </div>
               <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <nav className="hidden gap-6 md:flex">
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
                 Home
-              </a>
-              <a className="text-sm font-medium text-white" href="/reviews">
+              </Link>
+              <Link className="text-sm font-medium text-white" href="/reviews">
                 Reviews
-              </a>
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/my-reviews">
+                My Reviews
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/to-watch">
+                To Watch
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
@@ -419,7 +344,7 @@ export default function ReviewsDashboardPage() {
                 Reviews
               </h1>
               <p className="text-base font-normal text-[var(--app-muted)]">
-                Log the movies you have watched, rate them, and save them to your diary.
+                Log the movies you have watched, rate them, and publish quick reviews.
               </p>
             </div>
 
@@ -460,15 +385,13 @@ export default function ReviewsDashboardPage() {
                     {error ? <span className="text-red-300">{error}</span> : null}
                   </div>
                   {showResults ? (
-                    <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    <div className="mt-3 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 sm:mx-auto sm:max-w-[720px]">
                       {results.map((item) => {
                         const isSelected = selected?.externalId === item.externalId;
                         return (
-                          <Button
+                          <button
                             key={`${item.source}-${item.externalId}-${item.mediaType}`}
-                            variant="unstyled"
-                            size="none"
-                            className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
+                            className={`grid w-full min-h-[64px] grid-cols-[56px_1fr] items-center justify-items-start gap-x-4 rounded-lg border px-3 py-2 text-left transition-colors ${
                               isSelected
                                 ? "border-[var(--app-primary)] bg-[var(--app-border)] text-white"
                                 : "border-transparent bg-[var(--app-card)] text-slate-200 hover:border-[var(--app-border-strong)]"
@@ -481,23 +404,23 @@ export default function ReviewsDashboardPage() {
                             type="button"
                           >
                             <div
-                              className="h-12 w-9 shrink-0 rounded bg-cover bg-center"
+                              className="h-14 w-14 shrink-0 overflow-hidden rounded bg-[var(--app-border)] bg-cover bg-center"
                               style={{
                                 backgroundImage: item.posterUrl
                                   ? `url('${item.posterUrl}')`
-                                  : "none",
+                                  : "var(--app-gradient-poster)",
                               }}
                             />
-                            <div className="min-w-0">
+                            <div className="flex min-w-0 flex-col justify-center">
                               <p className="truncate text-sm font-semibold">
                                 {item.title}
                               </p>
-                              <p className="text-xs text-[var(--app-muted)]">
+                              <p className="truncate text-xs text-[var(--app-muted)]">
                                 {item.mediaType.toUpperCase()}
                                 {item.year ? ` · ${item.year}` : ""}
                               </p>
                             </div>
-                          </Button>
+                          </button>
                         );
                       })}
                     </div>
@@ -527,17 +450,6 @@ export default function ReviewsDashboardPage() {
                           {selected.mediaType.toUpperCase()}
                           {selected.year ? ` · ${selected.year}` : ""}
                         </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[var(--app-muted)] text-xs font-semibold uppercase">
-                          Watched
-                        </span>
-                        <input
-                          className="bg-transparent text-sm text-white focus:outline-none"
-                          type="date"
-                          value={watchedOn}
-                          onChange={(event) => setWatchedOn(event.target.value)}
-                        />
                       </div>
                     </div>
                   </div>
@@ -586,31 +498,20 @@ export default function ReviewsDashboardPage() {
                         <path d="M12 21s-6.7-4.4-9.3-8.6C.7 8.6 2.4 4.8 6 4.8c2 0 3.4 1 4 2 0.6-1 2-2 4-2 3.6 0 5.3 3.8 3.3 7.6C18.7 16.6 12 21 12 21z" />
                       </svg>
                     </Button>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <Button
-                      variant="unstyled"
-                      size="none"
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                        rewatch
-                          ? "border-pink-500/60 text-pink-300"
-                          : "border-[var(--app-border)] text-[var(--app-muted)]"
-                      }`}
-                      onClick={() => setRewatch((current) => !current)}
+                      className="tracking-wide"
+                      onClick={handleHydrate}
+                      disabled={isHydrating || !selected}
                       type="button"
                     >
-                      Rewatch
+                      {isHydrating ? "Reviewing..." : "Review Film"}
                     </Button>
+                    <ButtonLink variant="outline" href="/lists">
+                      Add to list
+                    </ButtonLink>
                   </div>
-                  <Button
-                    className="tracking-wide"
-                    onClick={handleHydrate}
-                    disabled={isHydrating || !selected}
-                    type="button"
-                  >
-                    {isHydrating ? "Logging..." : "Log Film"}
-                  </Button>
-                  <ButtonLink variant="outline" href="/lists">
-                    Add to list
-                  </ButtonLink>
                 </div>
                 <div className="flex flex-col gap-2 text-xs text-[var(--app-muted)]">
                   <details className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2">
@@ -653,7 +554,7 @@ export default function ReviewsDashboardPage() {
                 </div>
               {isRecentLoading ? (
                 <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
-                  Loading recent entries...
+                  Loading recent reviews...
                 </div>
               ) : recentError ? (
                 <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -661,7 +562,7 @@ export default function ReviewsDashboardPage() {
                 </div>
               ) : recentEntries.length === 0 ? (
                 <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
-                  No diary entries yet.
+                  No reviews yet.
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -681,11 +582,6 @@ export default function ReviewsDashboardPage() {
                           }}
                         />
                         <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                        {movie.rewatch ? (
-                          <div className="absolute right-2 top-2 rounded bg-pink-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                            REWATCH
-                          </div>
-                        ) : null}
                       </div>
                       <div className="flex flex-col">
                         <h4 className="truncate text-sm font-semibold text-white">
@@ -707,70 +603,6 @@ export default function ReviewsDashboardPage() {
           </div>
 
           <aside className="flex w-full flex-col gap-6 lg:w-[340px]">
-            <div className="grid grid-cols-2 gap-3">
-              {statCards.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="flex flex-col gap-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] p-5"
-                >
-                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--app-muted)]">
-                    {stat.label}
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <p className="text-3xl font-black text-white">{stat.value}</p>
-                    {stat.isAverage ? (
-                      <span className="text-sm text-[var(--app-muted)]">{stat.delta}</span>
-                    ) : null}
-                  </div>
-                  {!stat.isAverage && stat.delta ? (
-                    <div className="mt-1 flex items-center gap-0.5 text-xs font-bold text-[#0bda5b]">
-                      <svg
-                        aria-hidden="true"
-                        className="h-3.5 w-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M4 14l6-6 4 4 6-6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                      <span>{stat.delta}</span>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-            {isStatsLoading ? (
-              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-xs text-[var(--app-muted)]">
-                Loading stats...
-              </div>
-            ) : null}
-            {statsError ? (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
-                {statsError}
-              </div>
-            ) : null}
-
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-5">
-              <h3 className="mb-4 text-sm font-bold text-white">Top Genres</h3>
-              <div className="flex flex-col gap-3">
-                {genreStats.map((genre) => (
-                  <div key={genre.label} className="flex items-center gap-3">
-                    <div className="w-16 text-xs font-medium text-[var(--app-muted)]">
-                      {genre.label}
-                    </div>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--app-border)]">
-                      <div className={`h-full rounded-full bg-[var(--app-primary)] ${genre.width}`} />
-                    </div>
-                    <div className="w-6 text-right text-xs font-bold text-white">
-                      {genre.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </aside>
         </div>
       </main>

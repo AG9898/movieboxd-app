@@ -105,8 +105,6 @@ Use server-only env vars.
     - api/
       - catalog/search/route.ts
       - catalog/hydrate/route.ts
-      - diary/log/route.ts
-      - diary/stats/route.ts
       - reviews/route.ts
       - lists/route.ts
       - lists/[listId]/items/route.ts
@@ -122,10 +120,6 @@ Use server-only env vars.
       - SearchBar.tsx
       - PosterCard.tsx
       - PosterGrid.tsx
-    - diary/
-      - LogFilmCard.tsx
-      - RatingStars.tsx
-      - StatsCards.tsx
     - lists/
       - ListEditor.tsx
       - ListItemRow.tsx
@@ -165,7 +159,6 @@ Convert them into React components in /components and Next pages in /app.
 
 ### 5.1 Entities
 - Title: cached movie/show from external API (TMDB primary)
-- DiaryEntry: a watch log (date watched, rating, rewatch flag, notes)
 - Review: text review + tags + spoiler/like flags
 - List: named list with privacy and description
 - ListItem: join of List <-> Title with rank/order and note
@@ -186,22 +179,11 @@ Convert them into React components in /components and Next pages in /app.
   - popularity (float) (optional)
   - createdAt, updatedAt
 
-- DiaryEntry
-  - id (uuid)
-  - titleId (fk Title)
-  - watchedOn (date)
-  - rating (decimal(2,1) or int 0..10)
-  - liked (bool)
-  - rewatch (bool)
-  - notes (text)
-  - createdAt, updatedAt
-  - unique constraint: (titleId, watchedOn) optional (allow multiple watches same day? decide)
-
 - Review
   - id (uuid)
   - titleId (fk Title)
   - watchedOn (date nullable)
-  - rating (same scale as DiaryEntry)
+  - rating (decimal(2,1) or int 0..10)
   - containsSpoilers (bool)
   - liked (bool)
   - body (text)
@@ -257,7 +239,6 @@ Convert them into React components in /components and Next pages in /app.
 ### 7.2 Routes (MVP)
 - GET  /api/catalog/search?q=...&type=movie|tv|multi
 - POST /api/catalog/hydrate { tmdbId, mediaType }
-- POST /api/diary/log { tmdbId, watchedOn, loggedOn, rating, liked, rewatch, notes }
 - POST /api/reviews { tmdbId, rating, watchedOn?, containsSpoilers, liked, body, tags[] }
 - GET  /api/reviews
 - GET  /api/reviews/{reviewId}

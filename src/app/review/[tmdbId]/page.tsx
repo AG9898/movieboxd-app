@@ -1,8 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 type CatalogResult = {
   source: "tmdb" | "tvmaze";
@@ -21,7 +22,9 @@ const ratingLabels = ["No rating", "1 star", "2 stars", "3 stars", "4 stars", "5
 
 export default function ReviewPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const tmdbIdParam = Array.isArray(params?.tmdbId) ? params.tmdbId[0] : params?.tmdbId;
+  const mediaTypeParam = (searchParams.get("mediaType") ?? "movie") as "movie" | "tv";
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "tv" | "multi">("movie");
   const [results, setResults] = useState<CatalogResult[]>([]);
@@ -121,7 +124,7 @@ export default function ReviewPage() {
       setIsLoadingTitle(true);
       setMissingTitle(false);
       try {
-        const response = await fetch(`/api/titles/${numericId}?mediaType=movie`);
+        const response = await fetch(`/api/titles/${numericId}?mediaType=${mediaTypeParam}`);
         const payload = (await response.json()) as
           | {
               ok: true;
@@ -165,7 +168,7 @@ export default function ReviewPage() {
           setSelected({
             source: "tmdb",
             externalId: numericId,
-            mediaType: "movie",
+            mediaType: mediaTypeParam,
             title: `TMDB #${numericId}`,
             year: null,
             overview: null,
@@ -185,7 +188,7 @@ export default function ReviewPage() {
     return () => {
       cancelled = true;
     };
-  }, [selected, tmdbIdParam]);
+  }, [mediaTypeParam, selected, tmdbIdParam]);
 
   useEffect(() => {
     if (!selected) return;
@@ -215,7 +218,7 @@ export default function ReviewPage() {
           body: JSON.stringify({
             source: "tmdb",
             externalId: numericId,
-            mediaType: "movie",
+            mediaType: mediaTypeParam,
           }),
         });
         const hydratePayload = (await hydrateResponse.json()) as
@@ -228,7 +231,7 @@ export default function ReviewPage() {
           );
         }
 
-        const titleResponse = await fetch(`/api/titles/${numericId}?mediaType=movie`);
+        const titleResponse = await fetch(`/api/titles/${numericId}?mediaType=${mediaTypeParam}`);
         const titlePayload = (await titleResponse.json()) as
           | {
               ok: true;
@@ -286,7 +289,7 @@ export default function ReviewPage() {
     return () => {
       cancelled = true;
     };
-  }, [adminPassphrase, isAutoHydrating, missingTitle, tmdbIdParam]);
+  }, [adminPassphrase, isAutoHydrating, mediaTypeParam, missingTitle, tmdbIdParam]);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -385,24 +388,30 @@ export default function ReviewPage() {
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
         <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+            <Link className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
                 <span className="text-xs font-semibold">ML</span>
               </div>
               <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <nav className="hidden gap-6 md:flex">
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
                 Home
-              </a>
-              <a className="text-sm font-medium text-white" href="/reviews">
+              </Link>
+              <Link className="text-sm font-medium text-white" href="/reviews">
                 Reviews
-              </a>
-              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/my-reviews">
+                My Reviews
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/to-watch">
+                To Watch
+              </Link>
+              <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
@@ -477,15 +486,13 @@ export default function ReviewPage() {
                   </select>
                 </div>
                 {showResults ? (
-                  <div className="mt-3 grid gap-2">
+                  <div className="mt-3 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 sm:mx-auto sm:max-w-[520px]">
                     {results.map((item) => {
                       const isSelected = selected?.externalId === item.externalId;
                       return (
-                        <Button
+                        <button
                           key={`${item.source}-${item.externalId}-${item.mediaType}`}
-                          variant="unstyled"
-                          size="none"
-                          className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
+                          className={`grid w-full min-h-[64px] grid-cols-[56px_1fr] items-center justify-items-start gap-x-4 rounded-lg border px-3 py-2 text-left transition-colors ${
                             isSelected
                               ? "border-[var(--app-primary)] bg-[var(--app-border)] text-white"
                               : "border-transparent bg-[#1a2638] text-slate-200 hover:border-[#2c3b59]"
@@ -498,23 +505,23 @@ export default function ReviewPage() {
                           type="button"
                         >
                           <div
-                            className="h-12 w-9 shrink-0 rounded bg-cover bg-center"
+                            className="h-14 w-14 shrink-0 overflow-hidden rounded bg-[var(--app-border)] bg-cover bg-center"
                             style={{
                               backgroundImage: item.posterUrl
                                 ? `url('${item.posterUrl}')`
-                                : "none",
+                                : "var(--app-gradient-poster)",
                             }}
                           />
-                          <div className="min-w-0">
+                          <div className="flex min-w-0 flex-col justify-center">
                             <p className="truncate text-sm font-semibold">
                               {item.title}
                             </p>
-                            <p className="text-xs text-[var(--app-muted)]">
+                            <p className="truncate text-xs text-[var(--app-muted)]">
                               {item.mediaType.toUpperCase()}
                               {item.year ? ` • ${item.year}` : ""}
                             </p>
                           </div>
-                        </Button>
+                        </button>
                       );
                     })}
                   </div>
