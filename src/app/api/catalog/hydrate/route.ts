@@ -64,12 +64,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { source, externalId, mediaType } = parsed.data;
+    const { source, externalId } = parsed.data;
 
     let tmdbId = 0;
     let title = "";
     let originalTitle: string | null = null;
-    let mediaType = parsed.data.mediaType;
+    const mediaType = source === "tvmaze" ? "tv" : parsed.data.mediaType;
     let overview: string | null = null;
     let posterPath: string | null = null;
     let backdropPath: string | null = null;
@@ -100,7 +100,6 @@ export async function POST(request: Request) {
       backdropPath = details.backdrop_path ?? null;
     } else {
       const details = await tvmazeGetShow(externalId);
-      mediaType = "tv";
       tmdbId = details.id;
       title = details.name;
       overview = stripHtml(details.summary);

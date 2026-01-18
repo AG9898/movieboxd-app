@@ -7,6 +7,10 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+const listQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
 const bodySchema = z.object({
   tmdbId: z.number().int().positive(),
   mediaType: z.enum(["movie", "tv"]),
@@ -22,6 +26,61 @@ function parseDate(value?: string): Date | null {
   if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const parsed = listQuerySchema.safeParse({
+    limit: url.searchParams.get("limit") ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          code: "BAD_REQUEST",
+          message: "Invalid query parameters.",
+          details: parsed.error.flatten().fieldErrors,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  const reviews = await prisma.review.findMany({
+    orderBy: { createdAt: "desc" },
+    take: parsed.data.limit,
+    include: {
+      title: true,
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
+  });
+
+  return NextResponse.json({
+    ok: true,
+    data: reviews.map((review) => ({
+      id: review.id,
+      title: {
+        tmdbId: review.title.tmdbId,
+        mediaType: review.title.mediaType,
+        title: review.title.title,
+        posterPath: review.title.posterPath,
+        releaseDate: review.title.releaseDate,
+      },
+      watchedOn: review.watchedOn,
+      rating: review.rating === null ? null : Number(review.rating),
+      liked: review.liked,
+      containsSpoilers: review.containsSpoilers,
+      body: review.body,
+      tags: review.tags.map((entry) => entry.tag.name),
+      createdAt: review.createdAt,
+    })),
+  });
 }
 
 export async function POST(request: Request) {

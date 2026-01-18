@@ -1,5 +1,5 @@
 # Changelog
-Last updated: 2026-01-14
+Last updated: 2026-01-17
 
 All notable changes to this project will be documented in this file.
 This changelog follows the Keep a Changelog format.
@@ -11,6 +11,12 @@ This changelog follows the Keep a Changelog format.
 - Added (API): create reviews via `POST /api/reviews`.
 - Added (API): create diary entries via `POST /api/diary/log`.
 - Added (UI/API): Curate Lists page layout with catalog search results.
+- Added (UI): Lists index page with list creation form.
+- Added (API): diary stats endpoint for Track page.
+- Added (API/UI): reviews list endpoint and Reviews page.
+- Added (UI): hydrated title details page.
+- Added (Scripts): API smoke test runner.
+- Added (Auth): admin unlock page with cookie-based session.
 - Added (API): list endpoints for create/update and list item management.
 - Changed (UI/API): wire Curate Lists save and add-item actions to list endpoints.
 - Added (API): list item read/delete endpoints.
@@ -29,6 +35,17 @@ This changelog follows the Keep a Changelog format.
 ### Changed
 - Changed (UI): replace the default Next.js home page with a custom landing layout.
 - Changed (UI): align the landing page with Stitch reference layout and sections.
+- Changed (UI): update landing navigation to route Lists to `/lists`.
+- Changed (UI): add header navigation links to Track, Review, and Curate Lists pages.
+- Changed (UI/API): auto-hydrate review titles on load when admin passphrase is provided.
+- Changed (UI): restore review search input for selecting titles.
+- Changed (UI): keep selected review title after save.
+- Changed (UI/API): validate list item notes and roll back on failed updates.
+- Changed (UI): load Track stats from diary stats endpoint.
+- Changed (UI): update nav links to point to Reviews list.
+- Changed (UI): link Reviews list items to title details page.
+- Changed (UI): add empty-state callouts for Track search, Review search, and Lists items.
+- Changed (Auth): middleware guard for write pages when in public read-only mode.
 - Changed (UI/API): wire Track Films search and log actions to catalog endpoints.
 - Changed (UI): hide the admin passphrase input behind a disclosure on Track Films.
 - Changed (UI/API): wire Rate & Review search and save actions to catalog endpoints.
@@ -47,9 +64,25 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI): fix duplicate keys in Track calendar headers.
 - Changed (UI): remove unused header search on Review and Lists pages.
 - Changed (UI): clear default list metadata placeholders before load.
+- Changed (UI): consolidate Track into Reviews dashboard and remove the Reviews list page.
+- Changed (Routing): add `/track` redirect to `/reviews` and update navigation links.
+- Changed (UI): align app headers to landing theme and update branding to MyFilmLists.
+- Changed (UI): standardize button styling via shared Button component and align Reviews theme with landing palette.
+- Changed (UI): introduce CSS variables for core palette and replace hardcoded colors across app styles.
+- Changed (UI): move hero and poster gradients into CSS variables for centralized theming.
+- Changed (UI): add spacing/typography CSS tokens and wire header/button sizes to variables.
+- Changed (UI): update Reviews dashboard with watched/logged date toggle, add-to-list action, and clickable recent items.
+- Added (API/UI): review detail endpoint and page at `/reviews/{reviewId}`.
+- Changed (UI): auto-log uses current time and search results collapse after selection.
+- Changed (UI/API): "Log Film" now creates reviews and the recent list shows the latest 5 reviews.
+- Changed (UI): review cards show excerpt + poster and link reliably to review detail.
+- Fixed (API): review detail handler now falls back to URL path parsing when params are missing.
 
 ### Fixed
-- None.
+- Fixed (API): avoid const reassignment errors in catalog hydrate route.
+- Fixed (API): accept tmdbId from params or path fallback in title details endpoint.
+- Fixed (API): validate listId parsing for list detail and items endpoints.
+- Fixed (UI): prevent list auto-save after delete to avoid invalid updates.
 
 ### Removed
 - None.
@@ -73,6 +106,7 @@ This changelog follows the Keep a Changelog format.
 
 ### Fixed
 - None.
+- Fixed (Build): move admin unlock POST handler to API route to avoid page/route conflict.
 
 ### Removed
 - None.

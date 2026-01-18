@@ -1,18 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import { securityHeaders } from "@/lib/securityHeaders";
+const protectedPrefixes = ["/reviews", "/review", "/lists", "/track"];
 
-export function middleware() {
-  const response = NextResponse.next();
-  const headers = securityHeaders();
+function needsProtection(pathname: string) {
+  return protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
 
-  for (const [key, value] of Object.entries(headers)) {
-    response.headers.set(key, value);
+export function middleware(request: NextRequest) {
+  if (process.env.PUBLIC_READONLY === "false") {
+    return NextResponse.next();
   }
 
-  return response;
+  const { pathname, search } = request.nextUrl;
+  if (pathname.startsWith("/admin/unlock")) {
+    return NextResponse.next();
+  }
+
+  if (!needsProtection(pathname)) {
+    return NextResponse.next();
+  }
+
+  const expected = process.env.ADMIN_PASSPHRASE;
+  const cookiePassphrase = request.cookies.get("ft_admin")?.value;
+  if (expected && cookiePassphrase === expected) {
+    return NextResponse.next();
+  }
+
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = "/admin/unlock";
+  redirectUrl.searchParams.set("next", `${pathname}${search}`);
+  return NextResponse.redirect(redirectUrl);
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/reviews", "/track", "/review/:path*", "/lists/:path*"],
 };

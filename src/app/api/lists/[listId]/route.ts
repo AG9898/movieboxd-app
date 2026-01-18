@@ -13,11 +13,23 @@ const updateSchema = z.object({
 });
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { listId: string } }
 ) {
+  const url = new URL(request.url);
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? url.pathname.split("/").pop());
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const list = await prisma.list.findUnique({
-    where: { id: params.listId },
+    where: { id: listIdResult.data },
   });
 
   if (!list) {
@@ -46,6 +58,18 @@ export async function PUT(
     );
   }
 
+  const url = new URL(request.url);
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? url.pathname.split("/").pop());
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = updateSchema.safeParse(body);
 
@@ -63,9 +87,8 @@ export async function PUT(
     );
   }
 
-  const { listId } = params;
   const updated = await prisma.list.update({
-    where: { id: listId },
+    where: { id: listIdResult.data },
     data: {
       name: parsed.data.name,
       description: parsed.data.description ?? undefined,
@@ -92,7 +115,19 @@ export async function DELETE(
     );
   }
 
-  const list = await prisma.list.findUnique({ where: { id: params.listId } });
+  const url = new URL(request.url);
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? url.pathname.split("/").pop());
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
+  const list = await prisma.list.findUnique({ where: { id: listIdResult.data } });
   if (!list) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "List not found." } },
@@ -101,8 +136,8 @@ export async function DELETE(
   }
 
   await prisma.$transaction([
-    prisma.listItem.deleteMany({ where: { listId: params.listId } }),
-    prisma.list.delete({ where: { id: params.listId } }),
+    prisma.listItem.deleteMany({ where: { listId: listIdResult.data } }),
+    prisma.list.delete({ where: { id: listIdResult.data } }),
   ]);
 
   return NextResponse.json({ ok: true });

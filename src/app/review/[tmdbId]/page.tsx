@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
 type CatalogResult = {
@@ -38,6 +39,9 @@ export default function ReviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoadingTitle, setIsLoadingTitle] = useState(false);
+  const [missingTitle, setMissingTitle] = useState(false);
+  const [isAutoHydrating, setIsAutoHydrating] = useState(false);
+  const hasAttemptedAutoHydrate = useRef(false);
 
   const trimmedQuery = query.trim();
   const canSearch = trimmedQuery.length >= 2;
@@ -50,6 +54,8 @@ export default function ReviewPage() {
     if (results.length === 0) return "No results yet.";
     return `${results.length} results`;
   }, [canSearch, isSearching, results.length]);
+
+  const showResults = results.length > 0 && (!selected || trimmedQuery !== selected.title);
 
   useEffect(() => {
     if (!canSearch) {
@@ -113,6 +119,7 @@ export default function ReviewPage() {
     let cancelled = false;
     const fetchTitle = async () => {
       setIsLoadingTitle(true);
+      setMissingTitle(false);
       try {
         const response = await fetch(`/api/titles/${numericId}?mediaType=movie`);
         const payload = (await response.json()) as
@@ -130,6 +137,9 @@ export default function ReviewPage() {
           | { ok: false; error: { message?: string } };
 
         if (!response.ok || !payload.ok) {
+          if (response.status === 404) {
+            setMissingTitle(true);
+          }
           throw new Error(payload.ok ? "Title not found." : payload.error?.message);
         }
 
@@ -176,6 +186,107 @@ export default function ReviewPage() {
       cancelled = true;
     };
   }, [selected, tmdbIdParam]);
+
+  useEffect(() => {
+    if (!selected) return;
+    if (trimmedQuery === selected.title) {
+      setResults([]);
+    }
+  }, [selected, trimmedQuery]);
+
+  useEffect(() => {
+    if (!tmdbIdParam || !missingTitle) return;
+    if (!adminPassphrase) return;
+    if (isAutoHydrating || hasAttemptedAutoHydrate.current) return;
+    const numericId = Number(tmdbIdParam);
+    if (Number.isNaN(numericId)) return;
+
+    let cancelled = false;
+    const hydrate = async () => {
+      setIsAutoHydrating(true);
+      setError(null);
+      try {
+        const hydrateResponse = await fetch("/api/catalog/hydrate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-passphrase": adminPassphrase,
+          },
+          body: JSON.stringify({
+            source: "tmdb",
+            externalId: numericId,
+            mediaType: "movie",
+          }),
+        });
+        const hydratePayload = (await hydrateResponse.json()) as
+          | { ok: true }
+          | { ok: false; error: { message?: string } };
+
+        if (!hydrateResponse.ok || !hydratePayload.ok) {
+          throw new Error(
+            hydratePayload.ok ? "Catalog hydrate failed." : hydratePayload.error?.message
+          );
+        }
+
+        const titleResponse = await fetch(`/api/titles/${numericId}?mediaType=movie`);
+        const titlePayload = (await titleResponse.json()) as
+          | {
+              ok: true;
+              data: {
+                tmdbId: number;
+                mediaType: "movie" | "tv";
+                title: string;
+                releaseDate: string | null;
+                posterPath: string | null;
+                overview: string | null;
+              };
+            }
+          | { ok: false; error: { message?: string } };
+
+        if (!titleResponse.ok || !titlePayload.ok) {
+          throw new Error(
+            titlePayload.ok ? "Title not found." : titlePayload.error?.message
+          );
+        }
+
+        if (!cancelled) {
+          const year = titlePayload.data.releaseDate
+            ? Number(titlePayload.data.releaseDate.slice(0, 4))
+            : null;
+          setSelected({
+            source: "tmdb",
+            externalId: titlePayload.data.tmdbId,
+            mediaType: titlePayload.data.mediaType,
+            title: titlePayload.data.title,
+            year: Number.isNaN(year) ? null : year,
+            overview: titlePayload.data.overview ?? null,
+            posterUrl: titlePayload.data.posterPath
+              ? `https://image.tmdb.org/t/p/w500${titlePayload.data.posterPath}`
+              : null,
+            backdropUrl: null,
+          });
+          setMissingTitle(false);
+          hasAttemptedAutoHydrate.current = true;
+        }
+      } catch (hydrateError) {
+        if (!cancelled) {
+          setError(
+            hydrateError instanceof Error ? hydrateError.message : "Catalog hydrate failed."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAutoHydrating(false);
+        }
+      }
+    };
+
+    hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [adminPassphrase, isAutoHydrating, missingTitle, tmdbIdParam]);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -257,9 +368,6 @@ export default function ReviewPage() {
       }
 
       setSuccessMessage("Review saved.");
-      setQuery("");
-      setResults([]);
-      setSelected(null);
       setReviewText("");
       setTags(tagOptions);
       setRating(0);
@@ -273,34 +381,31 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#101623] text-white">
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#222f49] bg-[#101623] px-6 py-3 sm:px-10">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white">
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 48 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  clipRule="evenodd"
-                  d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
-                  fill="currentColor"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </div>
-            <h2 className="hidden text-lg font-bold leading-tight tracking-[-0.015em] sm:block">
-              FilmTrack
-            </h2>
+    <div className="min-h-screen bg-[var(--app-panel)] text-white">
+      <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
+        <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
+                <span className="text-xs font-semibold">ML</span>
+              </div>
+              <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
+            </a>
           </div>
-          <div className="hidden md:block text-xs text-[#90a4cb]">
-            Rate &amp; review
+          <div className="flex items-center gap-4">
+            <nav className="hidden gap-6 md:flex">
+              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+                Home
+              </a>
+              <a className="text-sm font-medium text-white" href="/reviews">
+                Reviews
+              </a>
+              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
+                Lists
+              </a>
+            </nav>
           </div>
         </div>
-        <div className="flex flex-1 justify-end" />
       </header>
 
       <main className="flex flex-1 justify-center px-4 py-8 sm:px-6 lg:px-8">
@@ -309,7 +414,7 @@ export default function ReviewPage() {
             <h1 className="text-3xl font-bold leading-tight tracking-tight">
               I have watched...
             </h1>
-            <p className="text-sm font-normal text-[#90a4cb]">
+            <p className="text-sm font-normal text-[var(--app-muted)]">
               Tell us what you thought of this film.
             </p>
           </div>
@@ -321,38 +426,46 @@ export default function ReviewPage() {
 
           <div className="flex flex-col items-start gap-8 lg:flex-row">
             <div className="flex w-full shrink-0 flex-col gap-4 lg:w-[300px]">
-              <div className="rounded-xl border border-[#222f49] bg-[#182234] p-4 shadow-sm">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
                 <div
                   className="mb-4 aspect-[2/3] w-full overflow-hidden rounded-lg bg-cover bg-center shadow-md"
                   style={{
                     backgroundImage:
                       selected?.posterUrl
                         ? `url('${selected.posterUrl}')`
-                        : "linear-gradient(135deg, #1f2a44, #182234)",
+                        : "var(--app-gradient-poster)",
                   }}
                 />
                 <div className="flex flex-col gap-1 text-center">
                   <h2 className="text-xl font-bold leading-tight text-white">
                     {isLoadingTitle ? "Loading..." : selected?.title ?? "Select a film"}
                   </h2>
-                  <p className="text-sm text-[#90a4cb]">
+                  <p className="text-sm text-[var(--app-muted)]">
                     {selected?.year ? `${selected.year} • ` : ""}
                     {resolvedMediaType === "tv" ? "Series" : "Film"} details pending
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-[#222f49] bg-[#182234] p-4 text-xs text-[#90a4cb]">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 text-xs text-[var(--app-muted)]">
                 <div className="flex items-center justify-between">
                   <span>{resultLabel}</span>
                   {error ? <span className="text-red-300">{error}</span> : null}
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <input
+                    className="w-full rounded-md border border-[#2c3b59] bg-[var(--app-panel)] px-3 py-2 text-xs text-white placeholder-[#5a6b8c] focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]"
+                    placeholder="Search for a film..."
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                  />
                 </div>
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-[10px] uppercase tracking-wider text-[#5a6b8c]">
                     Type
                   </span>
                   <select
-                    className="rounded-md bg-[#222f49] px-2 py-1 text-xs text-white"
+                    className="rounded-md bg-[var(--app-border)] px-2 py-1 text-xs text-white"
                     value={searchType}
                     onChange={(event) =>
                       setSearchType(event.target.value as "movie" | "tv" | "multi")
@@ -363,19 +476,25 @@ export default function ReviewPage() {
                     <option value="multi">All</option>
                   </select>
                 </div>
-                {results.length > 0 ? (
+                {showResults ? (
                   <div className="mt-3 grid gap-2">
                     {results.map((item) => {
                       const isSelected = selected?.externalId === item.externalId;
                       return (
-                        <button
+                        <Button
                           key={`${item.source}-${item.externalId}-${item.mediaType}`}
+                          variant="unstyled"
+                          size="none"
                           className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
                             isSelected
-                              ? "border-[#0d59f2] bg-[#222f49] text-white"
+                              ? "border-[var(--app-primary)] bg-[var(--app-border)] text-white"
                               : "border-transparent bg-[#1a2638] text-slate-200 hover:border-[#2c3b59]"
                           }`}
-                          onClick={() => setSelected(item)}
+                          onClick={() => {
+                            setSelected(item);
+                            setQuery(item.title);
+                            setResults([]);
+                          }}
                           type="button"
                         >
                           <div
@@ -390,21 +509,26 @@ export default function ReviewPage() {
                             <p className="truncate text-sm font-semibold">
                               {item.title}
                             </p>
-                            <p className="text-xs text-[#90a4cb]">
+                            <p className="text-xs text-[var(--app-muted)]">
                               {item.mediaType.toUpperCase()}
                               {item.year ? ` • ${item.year}` : ""}
                             </p>
                           </div>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
                 ) : null}
+                {!isSearching && canSearch && results.length === 0 && !error ? (
+                  <div className="mt-3 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-xs text-[var(--app-muted)]">
+                    No results found. Try another title or adjust the type filter.
+                  </div>
+                ) : null}
               </div>
 
-              <div className="flex flex-col gap-3 rounded-xl border border-[#222f49] bg-[#182234] p-4 shadow-sm">
+              <div className="flex flex-col gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#90a4cb]">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[var(--app-muted)]">
                     Date Watched
                   </label>
                   <div className="relative">
@@ -423,7 +547,7 @@ export default function ReviewPage() {
                       </svg>
                     </div>
                     <input
-                      className="block w-full rounded-lg border-none bg-[#222f49] py-2 pl-10 pr-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#0d59f2]"
+                      className="block w-full rounded-lg border-none bg-[var(--app-border)] py-2 pl-10 pr-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--app-primary)]"
                       type="date"
                       value={watchedOn}
                       onChange={(event) => setWatchedOn(event.target.value)}
@@ -433,7 +557,7 @@ export default function ReviewPage() {
                 <div className="h-px bg-[#2c3b59] my-1" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="text-[#90a4cb] transition-colors group-hover:text-pink-500">
+                    <div className="text-[var(--app-muted)] transition-colors group-hover:text-pink-500">
                       <svg
                         aria-hidden="true"
                         className="h-5 w-5"
@@ -445,7 +569,7 @@ export default function ReviewPage() {
                     </div>
                     <span className="text-sm font-medium text-slate-200">Like this film</span>
                   </div>
-                  <label className="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full bg-[#222f49] p-0.5 transition-colors">
+                  <label className="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full bg-[var(--app-border)] p-0.5 transition-colors">
                     <div
                       className={`h-full w-[20px] rounded-full bg-white shadow-sm transition-transform ${
                         liked ? "translate-x-[20px]" : ""
@@ -461,7 +585,7 @@ export default function ReviewPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="text-[#90a4cb] transition-colors group-hover:text-amber-500">
+                    <div className="text-[var(--app-muted)] transition-colors group-hover:text-amber-500">
                       <svg
                         aria-hidden="true"
                         className="h-5 w-5"
@@ -475,7 +599,7 @@ export default function ReviewPage() {
                       Contains spoilers
                     </span>
                   </div>
-                  <label className="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full bg-[#222f49] p-0.5 transition-colors">
+                  <label className="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full bg-[var(--app-border)] p-0.5 transition-colors">
                     <div
                       className={`h-full w-[20px] rounded-full bg-white shadow-sm transition-transform ${
                         spoilers ? "translate-x-[20px]" : ""
@@ -489,13 +613,13 @@ export default function ReviewPage() {
                     />
                   </label>
                 </div>
-                <details className="rounded-lg border border-[#222f49] bg-[#101623] px-3 py-2 text-xs text-[#90a4cb]">
+                <details className="rounded-lg border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-xs text-[var(--app-muted)]">
                   <summary className="cursor-pointer text-sm font-semibold text-white">
                     Admin passphrase (only if writes are locked)
                   </summary>
                   <div className="mt-2">
                     <input
-                      className="w-full rounded-lg border border-[#222f49] bg-[#222f49] px-3 py-2 text-sm text-white placeholder-[#90a4cb]"
+                      className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-border)] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
                       placeholder="Optional admin passphrase"
                       type="password"
                       value={adminPassphrase}
@@ -507,24 +631,26 @@ export default function ReviewPage() {
             </div>
 
             <div className="flex w-full flex-1 flex-col gap-6">
-              <div className="rounded-xl border border-[#222f49] bg-[#182234] p-6 shadow-sm">
-                <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-[#90a4cb]">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
+                <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-[var(--app-muted)]">
                   Rate this film
                 </label>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
+                    <Button
                       key={star}
+                      variant="unstyled"
+                      size="none"
                       className={`p-1 transition-colors focus:outline-none ${
-                        rating >= star ? "text-[#0d59f2]" : "text-[#2c3b59]"
-                      } hover:text-[#0d59f2]`}
+                        rating >= star ? "text-[var(--app-primary)]" : "text-[#2c3b59]"
+                      } hover:text-[var(--app-primary)]`}
                       onClick={() => setRating(star)}
                       type="button"
                     >
                       <svg aria-hidden="true" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
                       </svg>
-                    </button>
+                    </Button>
                   ))}
                   <span className="ml-4 text-sm font-medium text-[#5a6b8c]">
                     {ratingLabel}
@@ -532,7 +658,7 @@ export default function ReviewPage() {
                 </div>
               </div>
 
-              <div className="flex min-h-[400px] flex-1 flex-col rounded-xl border border-[#222f49] bg-[#182234] shadow-sm">
+              <div className="flex min-h-[400px] flex-1 flex-col rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
                 <div className="flex-1 p-4">
                   <textarea
                     className="h-full w-full resize-none border-none bg-transparent text-base leading-relaxed text-slate-100 placeholder:text-slate-600 focus:ring-0"
@@ -541,21 +667,23 @@ export default function ReviewPage() {
                     onChange={(event) => setReviewText(event.target.value)}
                   />
                 </div>
-                <div className="border-t border-[#222f49] p-4">
-                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#2c3b59] bg-[#101623] p-2 focus-within:ring-1 focus-within:ring-[#0d59f2]">
+                <div className="border-t border-[var(--app-border)] p-4">
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#2c3b59] bg-[var(--app-panel)] p-2 focus-within:ring-1 focus-within:ring-[var(--app-primary)]">
                     {tags.map((tag) => (
                       <div
                         key={tag}
-                        className="flex items-center gap-1 rounded bg-[#0d59f2]/20 px-2 py-1 text-xs font-medium text-[#0d59f2]"
+                        className="flex items-center gap-1 rounded bg-[var(--app-primary)]/20 px-2 py-1 text-xs font-medium text-[var(--app-primary)]"
                       >
                         {tag}
-                        <button
-                          className="text-[#0d59f2]/70"
+                        <Button
+                          variant="unstyled"
+                          size="none"
+                          className="text-[var(--app-primary)]/70"
                           onClick={() => removeTag(tag)}
                           type="button"
                         >
                           x
-                        </button>
+                        </Button>
                       </div>
                     ))}
                     <input
@@ -576,11 +704,12 @@ export default function ReviewPage() {
               </div>
 
               <div className="flex justify-end gap-4 pb-8">
-                <button className="rounded-lg px-6 py-2.5 text-sm font-bold text-[#90a4cb] transition-colors hover:bg-[#222f49]">
+                <Button variant="ghost">
                   Cancel
-                </button>
-                <button
-                  className="flex items-center gap-2 rounded-lg bg-[#0d59f2] px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+                </Button>
+                <Button
+                  size="lg"
+                  className="px-8"
                   onClick={handleSaveReview}
                   disabled={!selected || isSaving}
                   type="button"
@@ -589,7 +718,7 @@ export default function ReviewPage() {
                     <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" />
                   </svg>
                   {isSaving ? "Saving..." : "Save Review"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

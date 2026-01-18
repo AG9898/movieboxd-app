@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -73,6 +74,7 @@ export default function CurateListPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const hasLoadedItems = useRef(false);
+  const isDeleted = useRef(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const lastSavedMeta = useRef<{ name: string; description: string; privacy: string } | null>(
     null
@@ -390,6 +392,17 @@ export default function CurateListPage() {
 
     setSavingNoteId(id);
     setError(null);
+    const previousNote = items.find((item) => item.id === id)?.note ?? "";
+    if (note.length > 500) {
+      setError("Notes must be 500 characters or less.");
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === id ? { ...entry, note: previousNote } : entry
+        )
+      );
+      setSavingNoteId(null);
+      return;
+    }
     try {
       const response = await fetch(`/api/lists/${listId}/items`, {
         method: "PUT",
@@ -408,6 +421,11 @@ export default function CurateListPage() {
       }
     } catch (noteError) {
       setError(noteError instanceof Error ? noteError.message : "Note update failed.");
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === id ? { ...entry, note: previousNote } : entry
+        )
+      );
     } finally {
       setSavingNoteId(null);
     }
@@ -454,6 +472,7 @@ export default function CurateListPage() {
     if (!listId) return;
     if (!hasLoadedItems.current) return;
     if (!lastSavedMeta.current) return;
+    if (isDeleted.current) return;
     if (suppressAutoSave.current) return;
 
     const metaChanged =
@@ -535,6 +554,9 @@ export default function CurateListPage() {
         throw new Error(payload.ok ? "Delete failed." : payload.error?.message);
       }
 
+      isDeleted.current = true;
+      suppressAutoSave.current = true;
+      lastSavedMeta.current = null;
       setToast("List deleted.");
       setItems([]);
       setListName("");
@@ -547,51 +569,39 @@ export default function CurateListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#101622] text-white">
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#222f49] bg-[#101623]/95 px-6 py-3 backdrop-blur-md">
-        <div className="flex items-center gap-8">
+    <div className="min-h-screen bg-[var(--app-bg)] text-white">
+      <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
+        <div className="mx-auto flex h-[var(--app-header-height)] max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <a className="flex items-center gap-2 transition-opacity hover:opacity-80" href="/">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white">
+                <span className="text-xs font-semibold">ML</span>
+              </div>
+              <span className="text-lg font-bold tracking-tight">MyFilmLists</span>
+            </a>
+          </div>
           <div className="flex items-center gap-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0d59f2]/20 text-[#0d59f2]">
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 48 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M24 4C12.95 4 4 12.95 4 24C4 35.05 12.95 44 24 44C35.05 44 44 35.05 44 24C44 12.95 35.05 4 24 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40Z"
-                  fill="currentColor"
-                  fillOpacity="0.2"
-                />
-                <path
-                  d="M24 12C17.37 12 12 17.37 12 24C12 30.63 17.37 36 24 36C30.63 36 36 30.63 36 24C36 17.37 30.63 12 24 12ZM24 32C19.58 32 16 28.42 16 24C16 19.58 19.58 16 24 16C28.42 16 32 19.58 32 24C32 28.42 28.42 32 24 32Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </div>
-            <h2 className="text-lg font-bold tracking-[-0.015em]">CineTrack</h2>
+            <nav className="hidden gap-6 md:flex">
+              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/">
+                Home
+              </a>
+              <a className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/reviews">
+                Reviews
+              </a>
+              <a className="text-sm font-medium text-white" href="/lists">
+                Lists
+              </a>
+            </nav>
           </div>
-          <div className="hidden md:block text-xs text-[#90a4cb]">
-            Curate lists
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
-          <div
-            className="h-10 w-10 rounded-full border-2 border-[#0d59f2] bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDbvGlbs6KmGkEUHDVMbWY0fO2fnDohQ-P400L4l9TgNH96h58-6qpoUgkO62zNW_f95wUVAmi3OgwYuAOoRQNivoof2ri8Ro2mfNcWFoBUwiDMfyKCveSfucmqeGY5cXCGtX6h_TFq-f_-c6RJh3lV4-MPAvCSQTOh6YJn1pp3xNyyZC0BtPguNUJc54grLXudQ8mcpWN7IifCTQrlQyocZ6H94h2qdD_3gT8NnCrejtj0BpXlQVsK-lm8EJT3LgA6OsPkQp_-dQ')",
-            }}
-          />
         </div>
       </header>
 
       <main className="flex flex-1 justify-center px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex w-full max-w-5xl flex-col gap-8">
-          <section className="rounded-2xl border border-[#314368]/30 bg-[#182234] p-6 shadow-sm">
+          <section className="rounded-2xl border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] p-6 shadow-sm">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white">Edit List Details</h1>
-              <p className="text-sm text-[#90a4cb]">
+              <p className="text-sm text-[var(--app-muted)]">
                 Curate and manage your movie collections.
               </p>
             </div>
@@ -599,7 +609,7 @@ export default function CurateListPage() {
               <label className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-white">List Name</span>
                 <input
-                  className="h-12 w-full rounded-xl border border-[#314368] bg-[#101623] p-3 text-white focus:border-[#0d59f2] focus:ring-[#0d59f2]"
+                  className="h-12 w-full rounded-xl border border-[var(--app-border-strong)] bg-[var(--app-panel)] p-3 text-white focus:border-[var(--app-primary)] focus:ring-[var(--app-primary)]"
                   type="text"
                   value={listName}
                   onChange={(event) => setListName(event.target.value)}
@@ -609,7 +619,7 @@ export default function CurateListPage() {
                 <span className="text-sm font-medium text-white">Privacy</span>
                 <div className="relative">
                   <select
-                    className="h-12 w-full appearance-none rounded-xl border border-[#314368] bg-[#101623] p-3 text-white focus:border-[#0d59f2] focus:ring-[#0d59f2]"
+                    className="h-12 w-full appearance-none rounded-xl border border-[var(--app-border-strong)] bg-[var(--app-panel)] p-3 text-white focus:border-[var(--app-primary)] focus:ring-[var(--app-primary)]"
                     value={privacy}
                     onChange={(event) => setPrivacy(event.target.value)}
                   >
@@ -624,7 +634,7 @@ export default function CurateListPage() {
             <label className="flex flex-col gap-2">
               <span className="text-sm font-medium text-white">Description</span>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-xl border border-[#314368] bg-[#101623] p-3 text-white focus:border-[#0d59f2] focus:ring-[#0d59f2]"
+                className="min-h-[100px] w-full resize-y rounded-xl border border-[var(--app-border-strong)] bg-[var(--app-panel)] p-3 text-white focus:border-[var(--app-primary)] focus:ring-[var(--app-primary)]"
                 placeholder="Add a description..."
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -633,11 +643,11 @@ export default function CurateListPage() {
           </section>
 
           <section className="flex flex-col gap-4">
-            <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-[#314368]/30 bg-[#182234] p-4 md:flex-row">
+            <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] p-4 md:flex-row">
               <div className="relative w-full flex-1">
-                <span className="absolute left-3 top-3 text-[#0d59f2]">+</span>
+                <span className="absolute left-3 top-3 text-[var(--app-primary)]">+</span>
                 <input
-                  className="h-12 w-full rounded-lg border border-[#314368] bg-[#101623] pl-11 pr-4 text-white placeholder:text-[#90a4cb] focus:border-[#0d59f2] focus:ring-1 focus:ring-[#0d59f2]"
+                  className="h-12 w-full rounded-lg border border-[var(--app-border-strong)] bg-[var(--app-panel)] pl-11 pr-4 text-white placeholder:text-[var(--app-muted)] focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]"
                   placeholder="Search for a film to add..."
                   type="text"
                   value={query}
@@ -647,7 +657,7 @@ export default function CurateListPage() {
               <div className="flex w-full items-center justify-end gap-3 md:w-auto" />
             </div>
 
-            <div className="rounded-xl border border-[#314368]/30 bg-[#182234] p-4 text-xs text-[#90a4cb]">
+            <div className="rounded-xl border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] p-4 text-xs text-[var(--app-muted)]">
               <div className="flex items-center justify-between">
                 <span>{resultLabel}</span>
                 {error ? <span className="text-red-300">{error}</span> : null}
@@ -655,9 +665,11 @@ export default function CurateListPage() {
               {results.length > 0 ? (
                 <div className="mt-3 grid gap-2 md:grid-cols-2">
                   {results.map((result) => (
-                    <button
+                    <Button
                       key={`${result.source}-${result.externalId}-${result.mediaType}`}
-                      className="flex items-center gap-3 rounded-lg border border-transparent bg-[#101623] px-3 py-2 text-left text-slate-200 transition-colors hover:border-[#314368]"
+                      variant="unstyled"
+                      size="none"
+                      className="flex items-center gap-3 rounded-lg border border-transparent bg-[var(--app-panel)] px-3 py-2 text-left text-slate-200 transition-colors hover:border-[var(--app-border-strong)]"
                       onClick={() => handleAdd(result)}
                       type="button"
                     >
@@ -671,12 +683,12 @@ export default function CurateListPage() {
                       />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{result.title}</p>
-                        <p className="text-xs text-[#90a4cb]">
+                        <p className="text-xs text-[var(--app-muted)]">
                           {result.year ? `${result.year} • ` : ""}
                           {result.mediaType.toUpperCase()}
                         </p>
                       </div>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ) : null}
@@ -689,7 +701,7 @@ export default function CurateListPage() {
             ) : null}
 
             {isLoading ? (
-              <div className="rounded-lg border border-[#314368]/30 bg-[#182234] px-4 py-3 text-sm text-[#90a4cb]">
+              <div className="rounded-lg border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-muted)]">
                 Loading list items...
               </div>
             ) : null}
@@ -701,13 +713,13 @@ export default function CurateListPage() {
             ) : null}
 
             {savingNoteId ? (
-              <div className="rounded-lg border border-[#314368]/30 bg-[#182234] px-4 py-3 text-sm text-[#90a4cb]">
+              <div className="rounded-lg border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-muted)]">
                 Saving note...
               </div>
             ) : null}
 
             {isAutoSavingMeta ? (
-              <div className="rounded-lg border border-[#314368]/30 bg-[#182234] px-4 py-3 text-sm text-[#90a4cb]">
+              <div className="rounded-lg border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-muted)]">
                 Saving list details...
               </div>
             ) : null}
@@ -716,10 +728,10 @@ export default function CurateListPage() {
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`group flex flex-col items-center gap-4 rounded-xl border bg-[#182234] p-4 transition-colors sm:flex-row ${
+                  className={`group flex flex-col items-center gap-4 rounded-xl border bg-[var(--app-surface)] p-4 transition-colors sm:flex-row ${
                     dragOverId === item.id
-                      ? "border-[#0d59f2]/70"
-                      : "border-[#314368]/30 hover:border-[#0d59f2]/50"
+                      ? "border-[var(--app-primary)]/70"
+                      : "border-[var(--app-border-strong)]/30 hover:border-[var(--app-primary)]/50"
                   }`}
                   draggable
                   onDragStart={(event) => {
@@ -755,19 +767,19 @@ export default function CurateListPage() {
                     style={{
                       backgroundImage: item.posterUrl
                         ? `url('${item.posterUrl}')`
-                        : "linear-gradient(135deg, #1f2a44, #182234)",
+                        : "var(--app-gradient-poster)",
                     }}
                   />
                   <div className="flex w-full flex-1 flex-col gap-1 text-center sm:text-left">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
                       <h3 className="text-lg font-bold text-white">{item.title}</h3>
                       {item.year ? (
-                        <span className="text-sm text-[#90a4cb]">({item.year})</span>
+                        <span className="text-sm text-[var(--app-muted)]">({item.year})</span>
                       ) : null}
                     </div>
                     <StarRow rating={item.rating} />
                     <input
-                      className="mt-2 w-full border-0 border-b border-[#314368] bg-transparent px-0 py-1 text-sm text-[#d7dde8] placeholder:text-[#90a4cb] focus:border-[#0d59f2] focus:ring-0"
+                      className="mt-2 w-full border-0 border-b border-[var(--app-border-strong)] bg-transparent px-0 py-1 text-sm text-[#d7dde8] placeholder:text-[var(--app-muted)] focus:border-[var(--app-primary)] focus:ring-0"
                       placeholder="Add a note on why this film is included..."
                       value={item.note}
                       onChange={(event) =>
@@ -783,27 +795,40 @@ export default function CurateListPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2 sm:flex-col">
-                    <button
+                    <Button
+                      variant="unstyled"
+                      size="none"
                       className="rounded-full p-2 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
                       onClick={() => handleRemove(item.id)}
                       type="button"
                     >
                       ✕
-                    </button>
-                    <button className="rounded-full p-2 text-gray-400 transition-colors hover:text-[#0d59f2] sm:hidden">
+                    </Button>
+                    <Button
+                      variant="unstyled"
+                      size="none"
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:text-[var(--app-primary)] sm:hidden"
+                      type="button"
+                    >
                       ☰
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 cursor-pointer rounded-xl border-2 border-dashed border-[#314368] p-8 text-center transition-colors hover:bg-[#182234]/50">
-              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#314368]/50 text-[#0d59f2]">
+            {!isLoading && items.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-[var(--app-border-strong)]/60 bg-[var(--app-surface)]/60 px-4 py-6 text-center text-sm text-[var(--app-muted)]">
+                No films yet. Use the search above to add your first title.
+              </div>
+            ) : null}
+
+            <div className="mt-4 cursor-pointer rounded-xl border-2 border-dashed border-[var(--app-border-strong)] p-8 text-center transition-colors hover:bg-[var(--app-surface)]/50">
+              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--app-border-strong)]/50 text-[var(--app-primary)]">
                 +
               </div>
               <p className="font-medium text-white">Add more films</p>
-              <p className="text-sm text-[#90a4cb]">
+              <p className="text-sm text-[var(--app-muted)]">
                 Search above or drag films here from your watchlist
               </p>
             </div>
@@ -812,13 +837,13 @@ export default function CurateListPage() {
       </main>
 
       <div className="px-6">
-        <details className="rounded-lg border border-[#314368]/30 bg-[#182234] px-4 py-3 text-xs text-[#90a4cb]">
+        <details className="rounded-lg border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-4 py-3 text-xs text-[var(--app-muted)]">
           <summary className="cursor-pointer text-sm font-semibold text-white">
             Admin passphrase (only if writes are locked)
           </summary>
           <div className="mt-2">
             <input
-              className="w-full rounded-lg border border-[#314368] bg-[#101623] px-3 py-2 text-sm text-white placeholder-[#90a4cb]"
+              className="w-full rounded-lg border border-[var(--app-border-strong)] bg-[var(--app-panel)] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
               placeholder="Optional admin passphrase"
               type="password"
               value={adminPassphrase}
@@ -828,57 +853,39 @@ export default function CurateListPage() {
         </details>
       </div>
 
-      <div className="sticky bottom-0 z-40 w-full border-t border-[#314368]/30 bg-[#182234] px-6 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <div className="sticky bottom-0 z-40 w-full border-t border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-6 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="hidden items-center gap-2 text-sm text-[#90a4cb] sm:flex">
+          <div className="hidden items-center gap-2 text-sm text-[var(--app-muted)] sm:flex">
             <span className="text-orange-400">✎</span>
             <span>Unsaved changes</span>
           </div>
           <div className="flex w-full items-center justify-end gap-4 sm:w-auto">
-            <button
-              className="h-10 rounded-lg px-6 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={handleDelete}
-              type="button"
-              disabled={isSaving}
-            >
+            <Button variant="ghost" className="text-red-400" onClick={handleDelete} disabled={isSaving}>
               Delete List
-            </button>
-            <button
-              className="h-10 rounded-lg bg-[#222f49] px-4 text-sm font-medium text-white transition-colors hover:bg-[#314368]"
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => setPreviewOpen(true)}>
               Preview
-            </button>
-            <button
-              className="h-10 rounded-lg bg-[#0d59f2] px-6 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {previewOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
-          <div className="w-full max-w-3xl rounded-2xl border border-[#314368]/60 bg-[#101623] p-6 shadow-xl">
+          <div className="w-full max-w-3xl rounded-2xl border border-[var(--app-border-strong)]/60 bg-[var(--app-panel)] p-6 shadow-xl">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-white">{listName || "Untitled list"}</h2>
-                <p className="mt-1 text-sm text-[#90a4cb]">
+                <p className="mt-1 text-sm text-[var(--app-muted)]">
                   {privacy === "public" ? "Public list" : privacy === "friends" ? "Friends only" : "Private"}
                 </p>
               </div>
-              <button
-                className="rounded-full border border-[#314368] px-3 py-1 text-xs text-[#90a4cb] hover:text-white"
-                onClick={() => setPreviewOpen(false)}
-                type="button"
-              >
+              <Button variant="outline" size="sm" onClick={() => setPreviewOpen(false)}>
                 Close
-              </button>
+              </Button>
             </div>
             {description ? (
               <p className="mt-4 text-sm text-[#d7dde8]">{description}</p>
@@ -891,13 +898,13 @@ export default function CurateListPage() {
                     style={{
                       backgroundImage: item.posterUrl
                         ? `url('${item.posterUrl}')`
-                        : "linear-gradient(135deg, #1f2a44, #182234)",
+                        : "var(--app-gradient-poster)",
                     }}
                   />
                   <div>
                     <p className="truncate text-sm font-semibold text-white">{item.title}</p>
                     {item.year ? (
-                      <p className="text-xs text-[#90a4cb]">{item.year}</p>
+                      <p className="text-xs text-[var(--app-muted)]">{item.year}</p>
                     ) : null}
                   </div>
                 </div>

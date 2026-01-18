@@ -24,15 +24,28 @@ const reorderSchema = z.object({
 
 const updateSchema = z.object({
   id: z.string().min(1),
-  note: z.string().optional(),
+  note: z.string().max(500).optional(),
 });
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { listId: string } }
 ) {
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const items = await prisma.listItem.findMany({
-    where: { listId: params.listId },
+    where: { listId: listIdResult.data },
     orderBy: { rank: "asc" },
     include: {
       title: true,
@@ -58,6 +71,19 @@ export async function POST(
     );
   }
 
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
 
@@ -75,10 +101,9 @@ export async function POST(
     );
   }
 
-  const { listId } = params;
   const { tmdbId, mediaType, rank, note } = parsed.data;
 
-  const list = await prisma.list.findUnique({ where: { id: listId } });
+  const list = await prisma.list.findUnique({ where: { id: listIdResult.data } });
   if (!list) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "List not found." } },
@@ -104,7 +129,7 @@ export async function POST(
 
   const created = await prisma.listItem.create({
     data: {
-      listId,
+      listId: listIdResult.data,
       titleId: title.id,
       rank,
       note: note?.trim() || null,
@@ -130,6 +155,19 @@ export async function PUT(
     );
   }
 
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = reorderSchema.safeParse(body);
 
@@ -151,7 +189,7 @@ export async function PUT(
 
     const { id, note } = updateParsed.data;
     const listItem = await prisma.listItem.findUnique({ where: { id } });
-    if (!listItem || listItem.listId !== params.listId) {
+    if (!listItem || listItem.listId !== listIdResult.data) {
       return NextResponse.json(
         { ok: false, error: { code: "NOT_FOUND", message: "List item not found." } },
         { status: 404 }
@@ -166,10 +204,9 @@ export async function PUT(
     return NextResponse.json({ ok: true, data: updated });
   }
 
-  const { listId } = params;
   const items = parsed.data.items;
 
-  const list = await prisma.list.findUnique({ where: { id: listId } });
+  const list = await prisma.list.findUnique({ where: { id: listIdResult.data } });
   if (!list) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "List not found." } },
@@ -205,6 +242,19 @@ export async function DELETE(
     );
   }
 
+  const url = new URL(request.url);
+  const segments = url.pathname.split("/");
+  const listIdResult = z
+    .string()
+    .uuid()
+    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  if (!listIdResult.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
+      { status: 400 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = z.object({ id: z.string().min(1) }).safeParse(body);
 
@@ -225,7 +275,7 @@ export async function DELETE(
   const { id } = parsed.data;
   const listItem = await prisma.listItem.findUnique({ where: { id } });
 
-  if (!listItem || listItem.listId !== params.listId) {
+  if (!listItem || listItem.listId !== listIdResult.data) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "List item not found." } },
       { status: 404 }

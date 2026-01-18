@@ -1,5 +1,5 @@
 # Current State
-Last updated: 2026-01-14
+Last updated: 2026-01-17
 
 ## Architecture snapshot
 - Stack
@@ -25,8 +25,11 @@ Last updated: 2026-01-14
 - `GET /api/health/db` - DB connectivity check.
 - `GET /api/health/db-stats` - Counts for titles/diary/reviews/lists.
 - `GET /api/diary` - List recent diary entries (supports `month` + `year` filters).
+- `GET /api/diary/stats` - Aggregated diary counts and average rating.
 - `POST /api/diary/log` - Create a diary entry (admin-only).
 - `POST /api/reviews` - Create a review with tags (admin-only).
+- `GET /api/reviews` - List reviews with title metadata and tags.
+- `GET /api/reviews/{reviewId}` - Fetch a single review with title metadata and tags.
 - `GET /api/lists` - List all lists.
 - `POST /api/lists` - Create a list (admin-only).
 - `PUT /api/lists/{listId}` - Update a list (admin-only).
@@ -39,19 +42,23 @@ Last updated: 2026-01-14
 
 ## Implemented pages/components
 - `src/app/page.tsx` is a custom landing page with working navigation links.
-- `src/app/track/page.tsx` implements Track Films and is wired to catalog + diary APIs.
+- `src/app/reviews/page.tsx` implements the Reviews dashboard, hydrates titles, creates reviews, and lists recent reviews.
+- `src/app/reviews/[reviewId]/page.tsx` implements review detail view.
 - `src/app/review/[tmdbId]/page.tsx` implements Rate & Review and is wired to catalog + review APIs.
+- `src/app/track/page.tsx` redirects legacy `/track` traffic to `/reviews`.
+- `src/app/titles/[tmdbId]/page.tsx` implements hydrated title details.
+- `src/app/lists/page.tsx` implements the Lists index and list creation flow.
 - `src/app/lists/[listId]/edit/page.tsx` implements Curate Lists and is wired to list APIs.
+- `src/app/admin/unlock/page.tsx` implements admin unlock for write access.
+
+## Planned changes (not implemented)
+- Apply typography tokens across pages.
+- Improve list edit flow with review info and write-review actions.
 
 ## Known blockers / risks
-- Admin auth is header-based only; no unlock flow or middleware for pages.
-- Review page only shows title details if the title is hydrated.
 - Database is expected but env validation does not enforce `DATABASE_URL`.
 - No tests configured beyond linting.
 
 ## Next 5 tasks (ordered)
-1) Add an admin unlock flow or middleware protection for write pages/actions.
-2) Auto-hydrate titles on `/review/[tmdbId]` if missing (or add a prompt).
-3) Add list item note validation + optimistic error rollback for list actions.
-4) Implement lists index page and list creation flow.
-5) Add basic tests or smoke checks for API routes.
+1) Review entry search UI polish (overflow and dropdown close behavior).
+2) Lists index and edit flow improvements (recent ordering, card click, auto-hydrate, review info).

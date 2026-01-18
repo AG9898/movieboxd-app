@@ -13,15 +13,17 @@ export async function GET(
   request: Request,
   { params }: { params: { tmdbId: string } }
 ) {
-  const tmdbId = Number(params.tmdbId);
-  if (Number.isNaN(tmdbId)) {
+  const url = new URL(request.url);
+  const pathId = params?.tmdbId ?? url.pathname.split("/").pop() ?? "";
+  const tmdbIdParsed = z.coerce.number().int().positive().safeParse(pathId);
+  if (!tmdbIdParsed.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid tmdbId." } },
       { status: 400 }
     );
   }
 
-  const url = new URL(request.url);
+  const tmdbId = tmdbIdParsed.data;
   const parsed = querySchema.safeParse({
     mediaType: url.searchParams.get("mediaType") ?? undefined,
   });

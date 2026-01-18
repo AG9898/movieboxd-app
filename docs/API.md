@@ -1,5 +1,9 @@
 # API
 
+## Planned changes
+- Extend diary log input to distinguish watched date vs logged date.
+- Expand list item payloads to include review metadata when available.
+
 ## GET /api/catalog/search
 
 Request:
@@ -97,9 +101,95 @@ Response:
 }
 ```
 
+## GET /api/diary/stats
+
+Request:
+```http
+GET /api/diary/stats?month=1&year=2026
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "data": {
+    "total": 42,
+    "yearCount": 12,
+    "monthCount": 3,
+    "avgRating": 3.8
+  }
+}
+```
+
 ## POST /api/diary/log
 
 ## POST /api/reviews
+
+## GET /api/reviews
+
+Request:
+```http
+GET /api/reviews?limit=20
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "9f1d7c74-9a1e-4c1a-9f9b-0c2f0b7a3cde",
+      "title": {
+        "tmdbId": 603,
+        "mediaType": "movie",
+        "title": "The Matrix",
+        "posterPath": "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+        "releaseDate": "1999-03-31T00:00:00.000Z"
+      },
+      "watchedOn": "2026-01-18T00:00:00.000Z",
+      "rating": 4.5,
+      "liked": true,
+      "containsSpoilers": false,
+      "body": "A classic rewatch.",
+      "tags": ["sci-fi", "rewatch"],
+      "createdAt": "2026-01-18T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+## GET /api/reviews/{reviewId}
+
+Request:
+```http
+GET /api/reviews/9f1d7c74-9a1e-4c1a-9f9b-0c2f0b7a3cde
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "9f1d7c74-9a1e-4c1a-9f9b-0c2f0b7a3cde",
+    "title": {
+      "tmdbId": 603,
+      "mediaType": "movie",
+      "title": "The Matrix",
+      "releaseDate": "1999-03-31T00:00:00.000Z",
+      "posterPath": "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+      "backdropPath": "/icmmSD4vTTDKOq2vvdulafOGw93.jpg"
+    },
+    "watchedOn": "2026-01-18T00:00:00.000Z",
+    "rating": 4.5,
+    "containsSpoilers": false,
+    "liked": true,
+    "body": "A classic rewatch.",
+    "tags": ["sci-fi", "rewatch"],
+    "createdAt": "2026-01-18T00:00:00.000Z",
+    "updatedAt": "2026-01-18T00:00:00.000Z"
+  }
+}
+```
 
 ## GET /api/lists
 

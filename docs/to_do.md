@@ -1,14 +1,14 @@
 # To Do
-Last updated: 2026-01-14
+Last updated: 2026-01-17
 
 ## Priority list (next 10)
-1) Add an admin unlock flow or middleware protection for write actions/pages.
-2) Auto-hydrate title data on `/review/[tmdbId]` when missing.
-3) Build a Lists index page and list creation UI.
-4) Add list item note validation + optimistic error rollback for list actions.
-5) Add a diary list API endpoint and wire recent diary stats.
-6) Add a reviews list API endpoint and a basic reviews page.
-7) Add a title details page for hydrated titles.
-8) Add tests or smoke scripts for catalog/diary/reviews/lists endpoints.
-9) Add navigation updates to point to real pages (lists index, diary, reviews).
-10) Add visual empty/error states for missing data across Track/Review/Lists.
+1) Apply typography tokens across pages (headings, body, and secondary text).
+2) Landing page: wire New Arrivals to dynamic data.
+3) Review entry flow: fix search input overflow (expand/wrap/ellipsis) and close dropdown after selection.
+4) Lists index: sort recent lists to the top and make list cards fully clickable.
+5) Lists edit: fix "Title not found. Hydrate the title before adding it to a list." by auto-hydrating or clearer handling.
+6) Lists edit: remove "Add more films" block, show review info per item, and add "Write review" link per item.
+
+## QA notes (from testing)
+- Review entry: search input can overflow and the dropdown persists after selection.
+- Lists edit: add-item flow can fail with "Title not found. Hydrate the title before adding it to a list."

@@ -1,8 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --app-bg: #101622;
+  --app-panel: #101623;
+  --app-surface: #182234;
+  --app-card: #1a2233;
+  --app-border: #222f49;
+  --app-border-strong: #314368;
+  --app-muted: #90a4cb;
+  --app-primary: #0d59f2;
+  --app-primary-hover: #2563eb;
+  --app-gradient-hero: linear-gradient(to top, rgba(16, 22, 34, 1), rgba(16, 22, 34, 0.8), transparent);
+  --app-gradient-hero-side: linear-gradient(to right, rgba(16, 22, 34, 0.9), transparent);
+  --app-gradient-poster: linear-gradient(135deg, #1f2a44, #182234);
+  --app-font-size-xs: 0.75rem;
+  --app-font-size-sm: 0.875rem;
+  --app-font-size-base: 1rem;
+  --app-font-size-lg: 1.125rem;
+  --app-font-size-xl: 1.25rem;
+  --app-font-size-2xl: 1.5rem;
+  --app-font-size-3xl: 1.875rem;
+  --app-font-size-4xl: 2.25rem;
+  --app-line-height-tight: 1.2;
+  --app-line-height-normal: 1.5;
+  --app-line-height-relaxed: 1.65;
+  --app-space-2: 0.5rem;
+  --app-space-3: 0.75rem;
+  --app-space-4: 1rem;
+  --app-space-5: 1.25rem;
+  --app-space-6: 1.5rem;
+  --app-space-8: 2rem;
+  --app-space-10: 2.5rem;
+  --app-space-12: 3rem;
+  --app-header-height: 4rem;
+  --app-button-h-sm: 2.25rem;
+  --app-button-h-md: 2.75rem;
+  --app-button-h-lg: 3rem;
+  --app-button-px-sm: 0.75rem;
+  --app-button-px-md: 1rem;
+  --app-button-px-lg: 1.5rem;
+  --background: var(--app-bg);
+  --foreground: #f8fafc;
 }
 
 @theme inline {
@@ -14,8 +52,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--app-bg);
+    --foreground: #f8fafc;
   }
 }
 
@@ -23,4 +61,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-normal);
 }

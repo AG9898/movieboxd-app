@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "env:local": "node scripts/set-env-local.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
