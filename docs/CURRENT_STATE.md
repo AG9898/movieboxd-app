@@ -1,5 +1,5 @@
 # Current State
-Last updated: 2026-01-17
+Last updated: 2026-01-18
 
 ## Architecture snapshot
 - Stack
@@ -12,7 +12,7 @@ Last updated: 2026-01-17
   - TMDB (primary catalog)
   - TVMaze (fallback for TV search)
 - Data store
-  - Supabase Postgres planned; Prisma schema + initial migration in `prisma/`
+  - Supabase Postgres active; Prisma schema + migrations applied in production
 - Reference docs: `./ARCHITECTURE.md`, `./API.md`, `./DB.md`
 - Next steps: `./to_do.md`
 
@@ -52,12 +52,15 @@ Last updated: 2026-01-17
 
 ## Planned changes (not implemented)
 - Apply typography tokens across pages.
-- Improve list edit flow with review info and write-review actions.
+- Add automated smoke tests and CI build gate.
 
 ## Known blockers / risks
-- Database is expected but env validation does not enforce `DATABASE_URL`.
 - No tests configured beyond linting.
+- Production monitoring/alerts not yet configured.
 
 ## Next 5 tasks (ordered)
-1) Review entry search UI polish (overflow and dropdown close behavior).
-2) Lists index and edit flow improvements (recent ordering, card click, auto-hydrate, review info).
+1) Manual QA pass for Reviews, Lists, To Watch, Review detail.
+2) Lint cleanup: resolve remaining lint errors/warnings.
+3) Apply typography tokens across pages.
+4) Review entry flow: confirm dropdown alignment and close behavior after selection.
+5) Add automated smoke tests for critical endpoints.
