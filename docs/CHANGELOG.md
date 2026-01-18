@@ -51,6 +51,7 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI): make landing feature cards clickable and add links to new pages.
 - Changed (UI): remove the New Arrivals section/components and simplify the landing footer.
 - Changed (Docs): add pre-deploy checklist items to `docs/to_do.md`.
+- Changed (Infra): rename middleware to proxy to match Next.js 16 conventions.
 - Changed (UI): add header navigation links to Track, Review, and Curate Lists pages.
 - Changed (UI/API): auto-hydrate review titles on load when admin passphrase is provided.
 - Changed (UI): restore review search input for selecting titles.
@@ -94,6 +95,7 @@ This changelog follows the Keep a Changelog format.
 - Fixed (UI): prevent list auto-save after delete to avoid invalid updates.
 - Fixed (UI): normalize list item media type mapping for list edit state typing.
 - Fixed (UI): guard list item rating rendering against undefined values.
+- Fixed (UI): normalize recent review media types before mapping to dashboard entries.
 
 ### Removed
 - Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.

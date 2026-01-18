@@ -6,7 +6,7 @@ function needsProtection(pathname: string) {
   return protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (process.env.PUBLIC_READONLY === "false") {
     return NextResponse.next();
   }

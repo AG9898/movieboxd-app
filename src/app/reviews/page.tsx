@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { type MediaType, toMediaType } from "@/types/media";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -37,7 +38,7 @@ type RecentEntry = {
   id: string;
   title: string;
   tmdbId: number;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   date: string;
   rating: number;
   image: string | null;
@@ -124,26 +125,29 @@ export default function ReviewsDashboardPage() {
           const mapped = payload.data
             .filter((entry) => Boolean(entry.id))
             .map((entry) => {
-            const ratingValue = entry.rating ?? 0;
-            const dateValue = entry.watchedOn ?? entry.createdAt;
-            return {
-              id: entry.id,
+              const mediaType = toMediaType(entry.title.mediaType);
+              if (!mediaType) return null;
+              const ratingValue = entry.rating ?? 0;
+              const dateValue = entry.watchedOn ?? entry.createdAt;
+              return {
+                id: entry.id,
                 title: entry.title.title,
                 tmdbId: entry.title.tmdbId,
-                mediaType: entry.title.mediaType === "tv" ? "tv" : "movie",
+                mediaType,
                 date: new Date(dateValue).toLocaleDateString("en-US", {
                   month: "short",
                   day: "2-digit",
                 }),
                 rating: Number.isNaN(ratingValue) ? 0 : ratingValue,
-              image: entry.title.posterPath
-                ? `https://image.tmdb.org/t/p/w500${entry.title.posterPath}`
-                : null,
-              body: entry.body,
-              liked: entry.liked,
-              containsSpoilers: entry.containsSpoilers,
-            };
-          });
+                image: entry.title.posterPath
+                  ? `https://image.tmdb.org/t/p/w500${entry.title.posterPath}`
+                  : null,
+                body: entry.body,
+                liked: entry.liked,
+                containsSpoilers: entry.containsSpoilers,
+              };
+            })
+            .filter((entry): entry is RecentEntry => entry !== null);
           setRecentEntries(mapped);
         }
       } catch (loadError) {
