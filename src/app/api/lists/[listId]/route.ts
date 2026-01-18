@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin";
@@ -12,15 +12,19 @@ const updateSchema = z.object({
   privacy: z.enum(["public", "private", "friends"]).optional(),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+type RouteContext = { params: Promise<{ listId: string }> };
+
+async function resolveListId(request: NextRequest, context: RouteContext) {
   const url = new URL(request.url);
-  const listIdResult = z
+  const params = await context.params;
+  return z
     .string()
     .uuid()
     .safeParse(params?.listId ?? url.pathname.split("/").pop());
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
@@ -42,10 +46,7 @@ export async function GET(
   return NextResponse.json({ ok: true, data: list });
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     requireAdmin(request);
   } catch (error) {
@@ -58,11 +59,7 @@ export async function PUT(
     );
   }
 
-  const url = new URL(request.url);
-  const listIdResult = z
-    .string()
-    .uuid()
-    .safeParse(params?.listId ?? url.pathname.split("/").pop());
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
@@ -99,10 +96,7 @@ export async function PUT(
   return NextResponse.json({ ok: true, data: updated });
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     requireAdmin(request);
   } catch (error) {
@@ -115,11 +109,7 @@ export async function DELETE(
     );
   }
 
-  const url = new URL(request.url);
-  const listIdResult = z
-    .string()
-    .uuid()
-    .safeParse(params?.listId ?? url.pathname.split("/").pop());
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
@@ -9,12 +9,17 @@ const querySchema = z.object({
   mediaType: z.enum(["movie", "tv"]).default("movie"),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: { tmdbId: string } }
-) {
+type RouteContext = { params: Promise<{ tmdbId: string }> };
+
+async function resolveTmdbId(request: NextRequest, context: RouteContext) {
   const url = new URL(request.url);
-  const pathId = params?.tmdbId ?? url.pathname.split("/").pop() ?? "";
+  const params = await context.params;
+  return params?.tmdbId ?? url.pathname.split("/").pop() ?? "";
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const url = new URL(request.url);
+  const pathId = await resolveTmdbId(request, context);
   const tmdbIdParsed = z.coerce.number().int().positive().safeParse(pathId);
   if (!tmdbIdParsed.success) {
     return NextResponse.json(

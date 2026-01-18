@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin";
@@ -27,16 +27,20 @@ const updateSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+type RouteContext = { params: Promise<{ listId: string }> };
+
+async function resolveListId(request: NextRequest, context: RouteContext) {
   const url = new URL(request.url);
   const segments = url.pathname.split("/");
-  const listIdResult = z
+  const params = await context.params;
+  return z
     .string()
     .uuid()
     .safeParse(params?.listId ?? segments[segments.length - 2]);
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
@@ -87,10 +91,7 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+export async function POST(request: NextRequest, context: RouteContext) {
   try {
     requireAdmin(request);
   } catch (error) {
@@ -103,12 +104,7 @@ export async function POST(
     );
   }
 
-  const url = new URL(request.url);
-  const segments = url.pathname.split("/");
-  const listIdResult = z
-    .string()
-    .uuid()
-    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
@@ -171,10 +167,7 @@ export async function POST(
   return NextResponse.json({ ok: true, data: created });
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     requireAdmin(request);
   } catch (error) {
@@ -187,12 +180,7 @@ export async function PUT(
     );
   }
 
-  const url = new URL(request.url);
-  const segments = url.pathname.split("/");
-  const listIdResult = z
-    .string()
-    .uuid()
-    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
@@ -258,10 +246,7 @@ export async function PUT(
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { listId: string } }
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     requireAdmin(request);
   } catch (error) {
@@ -274,12 +259,7 @@ export async function DELETE(
     );
   }
 
-  const url = new URL(request.url);
-  const segments = url.pathname.split("/");
-  const listIdResult = z
-    .string()
-    .uuid()
-    .safeParse(params?.listId ?? segments[segments.length - 2]);
+  const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
       { ok: false, error: { code: "BAD_REQUEST", message: "Invalid listId." } },
