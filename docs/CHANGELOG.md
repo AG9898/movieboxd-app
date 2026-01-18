@@ -92,6 +92,7 @@ This changelog follows the Keep a Changelog format.
 - Fixed (API): accept tmdbId from params or path fallback in title details endpoint.
 - Fixed (API): validate listId parsing for list detail and items endpoints.
 - Fixed (UI): prevent list auto-save after delete to avoid invalid updates.
+- Fixed (UI): normalize list item media type mapping for list edit state typing.
 
 ### Removed
 - Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.

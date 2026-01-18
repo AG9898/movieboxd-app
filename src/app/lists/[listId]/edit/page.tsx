@@ -236,8 +236,10 @@ function formatReviewDate(value?: string | null) {
         }
 
         if (!cancelled) {
-          const mapped = payload.data.map((item) => {
+          const mapped: ListItem[] = payload.data.map((item) => {
             const reviewDate = item.latestReview?.watchedOn ?? item.latestReview?.createdAt ?? null;
+            const mediaType: ListItem["mediaType"] =
+              item.title.mediaType === "tv" ? "tv" : "movie";
             return {
               id: item.id,
               title: item.title.title,
@@ -248,7 +250,7 @@ function formatReviewDate(value?: string | null) {
                 : null,
               note: item.note ?? "",
               tmdbId: item.title.tmdbId,
-              mediaType: item.title.mediaType === "tv" ? "tv" : "movie",
+              mediaType,
               reviewId: item.latestReview?.id,
               reviewRating: item.latestReview?.rating ?? null,
               reviewDate,
