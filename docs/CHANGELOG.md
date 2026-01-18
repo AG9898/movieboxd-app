@@ -6,6 +6,7 @@ This changelog follows the Keep a Changelog format.
 
 ## [Unreleased]
 ### Added
+- Added (UI/API): delete reviews from detail view and My Reviews bulk selection.
 - Added (UI): Track Films page layout based on Stitch reference.
 - Added (UI): Rate & Review page layout based on Stitch reference.
 - Added (API): create reviews via `POST /api/reviews`.

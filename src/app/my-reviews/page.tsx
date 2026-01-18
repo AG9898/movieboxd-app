@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -58,6 +59,10 @@ export default function MyReviewsPage() {
   const [reviews, setReviews] = useState<ReviewSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +96,58 @@ export default function MyReviewsPage() {
       cancelled = true;
     };
   }, []);
+
+  const toggleEdit = () => {
+    setIsEditing((current) => {
+      const next = !current;
+      if (!next) {
+        setSelectedIds(new Set());
+      }
+      return next;
+    });
+    setDeleteError(null);
+  };
+
+  const toggleSelection = (reviewId: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(reviewId)) {
+        next.delete(reviewId);
+      } else {
+        next.add(reviewId);
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0 || isDeleting) return;
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.size} review${selectedIds.size === 1 ? "" : "s"}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    const ids = Array.from(selectedIds);
+    try {
+      const responses = await Promise.all(
+        ids.map((reviewId) => fetch(`/api/reviews/${reviewId}`, { method: "DELETE" }))
+      );
+      const failed = responses.filter((response) => !response.ok);
+      if (failed.length > 0) {
+        throw new Error("Some reviews could not be deleted. Try again.");
+      }
+      setReviews((current) => current.filter((review) => !selectedIds.has(review.id)));
+      setSelectedIds(new Set());
+      setIsEditing(false);
+    } catch (deleteFailure) {
+      setDeleteError(
+        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete reviews."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-white">
@@ -134,12 +191,27 @@ export default function MyReviewsPage() {
               All of your recent review entries in one place.
             </p>
           </div>
-          <Link
-            className="inline-flex items-center rounded-lg border border-[var(--app-border-strong)] px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:border-[var(--app-primary)] hover:text-white"
-            href="/reviews"
-          >
-            Log a new review
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              className="inline-flex items-center rounded-lg border border-[var(--app-border-strong)] px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:border-[var(--app-primary)] hover:text-white"
+              href="/reviews"
+            >
+              Log a new review
+            </Link>
+            <Button variant="outline" onClick={toggleEdit}>
+              {isEditing ? "Done" : "Edit reviews"}
+            </Button>
+            {isEditing ? (
+              <Button
+                variant="outline"
+                className="border-red-500/40 text-red-200 hover:border-red-400 hover:text-red-100"
+                disabled={selectedIds.size === 0 || isDeleting}
+                onClick={handleDeleteSelected}
+              >
+                {isDeleting ? "Deleting..." : `Delete selected (${selectedIds.size})`}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {isLoading ? (
@@ -151,6 +223,12 @@ export default function MyReviewsPage() {
         {error ? (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             {error}
+          </div>
+        ) : null}
+
+        {deleteError ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {deleteError}
           </div>
         ) : null}
 
@@ -169,21 +247,18 @@ export default function MyReviewsPage() {
               ? review.title.releaseDate.slice(0, 4)
               : null;
             const displayDate = formatDate(review.watchedOn || review.createdAt);
+            const isSelected = selectedIds.has(review.id);
 
-            return (
-              <Link
-                key={review.id}
-                href={`/reviews/${encodeURIComponent(review.id)}`}
-                className="group flex flex-col gap-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 transition-colors hover:border-[var(--app-primary)]/60 sm:flex-row sm:items-center"
-              >
+            const content = (
+              <>
                 <div className="flex flex-1 flex-col gap-3">
                   <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--app-muted)]">
                     <span className="font-semibold text-white">{review.title.title}</span>
                     <span className="text-[var(--app-muted)]">
                       {review.title.mediaType === "tv" ? "Series" : "Film"}
-                      {releaseYear ? ` · ${releaseYear}` : ""}
+                      {releaseYear ? ` Â· ${releaseYear}` : ""}
                     </span>
-                    {displayDate ? <span>· {displayDate}</span> : null}
+                    {displayDate ? <span>Â· {displayDate}</span> : null}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
@@ -222,6 +297,38 @@ export default function MyReviewsPage() {
                     aria-hidden="true"
                   />
                 </div>
+              </>
+            );
+
+            if (isEditing) {
+              return (
+                <div
+                  key={review.id}
+                  className="group flex flex-col gap-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 transition-colors hover:border-[var(--app-primary)]/60 sm:flex-row sm:items-center"
+                >
+                  <div className="flex flex-1 items-start gap-3">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-[var(--app-border-strong)] bg-[var(--app-panel)] text-[var(--app-primary)]"
+                      checked={isSelected}
+                      onChange={() => toggleSelection(review.id)}
+                      aria-label={`Select review for ${review.title.title}`}
+                    />
+                    <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+                      {content}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={review.id}
+                href={`/reviews/${encodeURIComponent(review.id)}`}
+                className="group flex flex-col gap-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 transition-colors hover:border-[var(--app-primary)]/60 sm:flex-row sm:items-center"
+              >
+                {content}
               </Link>
             );
           })}

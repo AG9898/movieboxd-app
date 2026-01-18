@@ -1,8 +1,8 @@
 "use client";
 
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type ReviewDetail = {
@@ -60,10 +60,13 @@ function RatingStars({ rating }: { rating: number }) {
 
 export default function ReviewDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const reviewId = Array.isArray(params?.reviewId) ? params.reviewId[0] : params?.reviewId;
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!reviewId || reviewId === "undefined" || reviewId === "null") {
@@ -113,6 +116,28 @@ export default function ReviewDetailPage() {
     ? `https://image.tmdb.org/t/p/w500${review.title.posterPath}`
     : null;
 
+  const handleDelete = async () => {
+    if (!reviewId || typeof reviewId !== "string") return;
+    const confirmed = window.confirm("Delete this review? This cannot be undone.");
+    if (!confirmed) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}`, { method: "DELETE" });
+      const payload = (await response.json()) as ApiResponse<{ ok?: boolean }>;
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.ok ? "Failed to delete review." : payload.error?.message);
+      }
+      router.push("/my-reviews");
+    } catch (deleteFailure) {
+      setDeleteError(
+        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete review."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-white">
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
@@ -148,16 +173,26 @@ export default function ReviewDetailPage() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white">Review Details</h1>
             <p className="text-sm text-[var(--app-muted)]">
               {review ? "Full review entry and details." : "Loading review details."}
             </p>
           </div>
-          <ButtonLink variant="outline" href="/reviews">
-            Back to reviews
-          </ButtonLink>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              className="border-red-500/40 text-red-200 hover:border-red-400 hover:text-red-100"
+              disabled={!review || isDeleting}
+              onClick={handleDelete}
+            >
+              {isDeleting ? "Deleting..." : "Delete review"}
+            </Button>
+            <ButtonLink variant="outline" href="/reviews">
+              Back to reviews
+            </ButtonLink>
+          </div>
         </div>
 
         {isLoading ? (
@@ -169,6 +204,12 @@ export default function ReviewDetailPage() {
         {error ? (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             {error}
+          </div>
+        ) : null}
+
+        {deleteError ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {deleteError}
           </div>
         ) : null}
 
