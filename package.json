@@ -9,7 +9,8 @@
     "lint": "eslint",
     "env:local": "node scripts/set-env-local.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.19.1",
