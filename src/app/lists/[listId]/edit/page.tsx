@@ -208,9 +208,27 @@ function formatReviewDate(value?: string | null) {
       try {
         const response = await fetch(`/api/lists/${listId}/items`);
         const payload = (await response.json()) as
-          | { ok: true; data: Array<{ id: string; rank: number; note: string | null; title: {
-              tmdbId: number; mediaType: string; title: string; releaseDate: string | null; posterPath: string | null;
-            }; latestReview: { id: string; rating: number | null; watchedOn: string | null; createdAt: string } | null }> }
+          | {
+              ok: true;
+              data: Array<{
+                id: string;
+                rank: number;
+                note: string | null;
+                title: {
+                  tmdbId: number;
+                  mediaType: "movie" | "tv";
+                  title: string;
+                  releaseDate: string | null;
+                  posterPath: string | null;
+                };
+                latestReview: {
+                  id: string;
+                  rating: number | null;
+                  watchedOn: string | null;
+                  createdAt: string;
+                } | null;
+              }>;
+            }
           | { ok: false; error: { message?: string } };
 
         if (!response.ok || !payload.ok) {
@@ -221,20 +239,20 @@ function formatReviewDate(value?: string | null) {
           const mapped = payload.data.map((item) => {
             const reviewDate = item.latestReview?.watchedOn ?? item.latestReview?.createdAt ?? null;
             return {
-            id: item.id,
-            title: item.title.title,
-            year: item.title.releaseDate ? Number(item.title.releaseDate.slice(0, 4)) : null,
-            rating: item.latestReview?.rating ?? null,
-            posterUrl: item.title.posterPath
-              ? `https://image.tmdb.org/t/p/w500${item.title.posterPath}`
-              : null,
-            note: item.note ?? "",
-            tmdbId: item.title.tmdbId,
-            mediaType: item.title.mediaType === "tv" ? "tv" : "movie",
-            reviewId: item.latestReview?.id,
-            reviewRating: item.latestReview?.rating ?? null,
-            reviewDate,
-          };
+              id: item.id,
+              title: item.title.title,
+              year: item.title.releaseDate ? Number(item.title.releaseDate.slice(0, 4)) : null,
+              rating: item.latestReview?.rating ?? null,
+              posterUrl: item.title.posterPath
+                ? `https://image.tmdb.org/t/p/w500${item.title.posterPath}`
+                : null,
+              note: item.note ?? "",
+              tmdbId: item.title.tmdbId,
+              mediaType: item.title.mediaType === "tv" ? "tv" : "movie",
+              reviewId: item.latestReview?.id,
+              reviewRating: item.latestReview?.rating ?? null,
+              reviewDate,
+            };
           });
           setItems(mapped);
           hasLoadedItems.current = true;
