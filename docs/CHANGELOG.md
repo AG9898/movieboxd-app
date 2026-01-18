@@ -52,6 +52,8 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI): remove the New Arrivals section/components and simplify the landing footer.
 - Changed (Docs): add pre-deploy checklist items to `docs/to_do.md`.
 - Changed (Infra): rename middleware to proxy to match Next.js 16 conventions.
+- Changed (Auth): protect the To Watch page behind admin unlock in public read-only mode.
+- Changed (Security): apply global security headers via Next config.
 - Changed (UI): add header navigation links to Track, Review, and Curate Lists pages.
 - Changed (UI/API): auto-hydrate review titles on load when admin passphrase is provided.
 - Changed (UI): restore review search input for selecting titles.
