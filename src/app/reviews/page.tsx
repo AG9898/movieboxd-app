@@ -6,7 +6,6 @@ import AddToListButton from "@/components/lists/AddToListButton";
 import { Button } from "@/components/ui/Button";
 import { type MediaType, toMediaType } from "@/types/media";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 
 type CatalogResult = {
@@ -77,7 +76,7 @@ function RatingStars({ rating }: { rating: number }) {
 
 export default function ReviewsDashboardPage() {
   const { isLoading: isSessionLoading } = useRequireSession();
-  const searchParams = useSearchParams();
+  const [queryParams, setQueryParams] = useState<URLSearchParams | null>(null);
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "tv" | "multi">("multi");
   const [results, setResults] = useState<CatalogResult[]>([]);
@@ -94,11 +93,16 @@ export default function ReviewsDashboardPage() {
   const [isRecentLoading, setIsRecentLoading] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setQueryParams(new URLSearchParams(window.location.search));
+  }, []);
+
   const trimmedQuery = query.trim();
   const canSearch = trimmedQuery.length >= 2;
-  const preselectTmdbId = searchParams.get("tmdbId");
-  const preselectMediaType = (searchParams.get("mediaType") ?? "movie") as "movie" | "tv";
-  const shouldAutoHydrate = searchParams.get("autoHydrate") === "1";
+  const preselectTmdbId = queryParams?.get("tmdbId") ?? null;
+  const preselectMediaType = (queryParams?.get("mediaType") ?? "movie") as "movie" | "tv";
+  const shouldAutoHydrate = queryParams?.get("autoHydrate") === "1";
 
   const resultLabel = useMemo(() => {
     if (!canSearch) return "Type 2+ characters to search.";

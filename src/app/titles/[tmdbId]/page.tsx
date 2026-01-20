@@ -4,7 +4,7 @@ import AuthNav from "@/components/auth/AuthNav";
 import AddToListButton from "@/components/lists/AddToListButton";
 import { ButtonLink } from "@/components/ui/Button";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type TitleDetails = {
@@ -39,13 +39,21 @@ function formatDate(value?: string | null) {
 
 export default function TitleDetailsPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const tmdbIdParam = Array.isArray(params?.tmdbId) ? params.tmdbId[0] : params?.tmdbId;
-  const mediaType = (searchParams.get("mediaType") ?? "movie") as "movie" | "tv";
+  const [mediaType, setMediaType] = useState<"movie" | "tv">("movie");
 
   const [title, setTitle] = useState<TitleDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const nextType = params.get("mediaType");
+    if (nextType === "movie" || nextType === "tv") {
+      setMediaType(nextType);
+    }
+  }, []);
 
   useEffect(() => {
     if (!tmdbIdParam) return;
