@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/admin";
+import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -24,6 +24,14 @@ async function resolveListId(request: NextRequest, context: RouteContext) {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json(
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
+      { status: 401 }
+    );
+  }
+
   const listIdResult = await resolveListId(request, context);
   if (!listIdResult.success) {
     return NextResponse.json(
@@ -43,18 +51,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
     );
   }
 
+  if (list.userId !== user.id) {
+    return NextResponse.json(
+      { ok: false, error: { code: "FORBIDDEN", message: "Not allowed." } },
+      { status: 403 }
+    );
+  }
+
   return NextResponse.json({ ok: true, data: list });
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  try {
-    requireAdmin(request);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
       { status: 401 }
     );
   }
@@ -84,6 +95,20 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     );
   }
 
+  const existing = await prisma.list.findUnique({ where: { id: listIdResult.data } });
+  if (!existing) {
+    return NextResponse.json(
+      { ok: false, error: { code: "NOT_FOUND", message: "List not found." } },
+      { status: 404 }
+    );
+  }
+  if (existing.userId !== user.id) {
+    return NextResponse.json(
+      { ok: false, error: { code: "FORBIDDEN", message: "Not allowed." } },
+      { status: 403 }
+    );
+  }
+
   const updated = await prisma.list.update({
     where: { id: listIdResult.data },
     data: {
@@ -97,14 +122,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  try {
-    requireAdmin(request);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
       { status: 401 }
     );
   }
@@ -122,6 +143,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "List not found." } },
       { status: 404 }
+    );
+  }
+
+  if (list.userId !== user.id) {
+    return NextResponse.json(
+      { ok: false, error: { code: "FORBIDDEN", message: "Not allowed." } },
+      { status: 403 }
     );
   }
 

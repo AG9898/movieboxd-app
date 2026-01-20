@@ -1,5 +1,7 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import AddToListButton from "@/components/lists/AddToListButton";
 import { ButtonLink } from "@/components/ui/Button";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -17,6 +19,7 @@ type TitleDetails = {
   overview: string | null;
   runtimeMinutes: number | null;
   genres: string[];
+  voteAverage: number | null;
 };
 
 type ApiResponse<T> =
@@ -91,6 +94,12 @@ export default function TitleDetailsPage() {
     return Number.isNaN(year) ? null : year;
   }, [title?.releaseDate]);
 
+  const ratingLabel = useMemo(() => {
+    if (title?.voteAverage === null || title?.voteAverage === undefined) return null;
+    if (Number.isNaN(title.voteAverage)) return null;
+    return title.voteAverage.toFixed(1);
+  }, [title?.voteAverage]);
+
   return (
     <div className="min-h-screen bg-[var(--app-panel)] text-white">
       <header className="sticky top-0 z-50 w-full border-b border-[var(--app-border)] bg-[var(--app-bg)]/80 backdrop-blur-md">
@@ -120,6 +129,7 @@ export default function TitleDetailsPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -134,9 +144,18 @@ export default function TitleDetailsPage() {
             </p>
           </div>
           {title ? (
-            <ButtonLink href={`/review/${title.tmdbId}`} size="sm">
-              Write a review
-            </ButtonLink>
+            <div className="flex flex-wrap gap-2">
+              <ButtonLink href={`/review/${title.tmdbId}?mediaType=${title.mediaType}`} size="sm">
+                Write a review
+              </ButtonLink>
+              <AddToListButton
+                tmdbId={title.tmdbId}
+                mediaType={title.mediaType}
+                source="tmdb"
+                variant="outline"
+                size="sm"
+              />
+            </div>
           ) : null}
         </section>
 
@@ -175,6 +194,21 @@ export default function TitleDetailsPage() {
                 ) : null}
               </div>
 
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2 text-xs text-[var(--app-muted)]">
+                  <span className="uppercase tracking-wide text-[10px] text-slate-400">Release year</span>
+                  <p className="mt-1 text-sm text-white">{releaseYear ?? "Unknown"}</p>
+                </div>
+                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2 text-xs text-[var(--app-muted)]">
+                  <span className="uppercase tracking-wide text-[10px] text-slate-400">TMDB rating</span>
+                  <p className="mt-1 text-sm text-white">{ratingLabel ?? "Not rated"}</p>
+                </div>
+                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2 text-xs text-[var(--app-muted)]">
+                  <span className="uppercase tracking-wide text-[10px] text-slate-400">Media type</span>
+                  <p className="mt-1 text-sm text-white">{title.mediaType.toUpperCase()}</p>
+                </div>
+              </div>
+
               {title.genres.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {title.genres.map((genre) => (
@@ -188,7 +222,10 @@ export default function TitleDetailsPage() {
                 </div>
               ) : null}
 
-              <div className="text-sm text-[#d7dde8]">
+              <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] p-4 text-sm text-[#d7dde8]">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Description
+                </p>
                 {title.overview ? title.overview : "No synopsis available."}
               </div>
 

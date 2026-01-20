@@ -21,9 +21,9 @@ Last updated: 2026-01-17
 
 ## Decision 4
 - Date: 2026-01-14
-- Decision: Admin-only write operations via `PUBLIC_READONLY` + `x-admin-passphrase`.
-- Context: `src/lib/admin.ts` checks a header when `PUBLIC_READONLY=true`.
-- Consequences: Write endpoints require the header unless `PUBLIC_READONLY=false`.
+- Decision: Legacy admin-only write gating (deprecated).
+- Context: Early deployments relied on a single-owner passphrase gate.
+- Consequences: Superseded by per-user sessions and ownership enforcement.
 
 ## Decision 5
 - Date: 2026-01-14
@@ -42,3 +42,16 @@ Last updated: 2026-01-17
 - Decision: Reviews dashboard creates reviews directly.
 - Context: Recent activity should reflect review entries and feed the review detail flow.
 - Consequences: Logging from the dashboard uses `POST /api/reviews`; recent items read from `GET /api/reviews`.
+
+## Decision 8
+- Date: 2026-01-18
+- Decision: Move from admin unlock/no-accounts to Better Auth user accounts.
+- Context: The current security model assumes a single admin and public read-only browsing.
+- Consequences: Write operations require a signed-in user session and data becomes user-owned.
+
+## Decision 9
+- Date: 2026-01-18
+- Decision: Remove legacy admin passphrase gating and enforce per-user ownership.
+- Context: Multi-user auth requires write operations and reads to be scoped to the signed-in user.
+- Consequences: All review/list/list item access is filtered by userId; signed-out users cannot write.
+- Migration notes: Existing reviews and lists are assigned to a system user (`00000000-0000-0000-0000-000000000000`).

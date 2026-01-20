@@ -108,14 +108,6 @@ async function main() {
     updates.set("DATABASE_URL", databaseUrl);
   }
 
-  if (!entries.has("PUBLIC_READONLY")) {
-    updates.set("PUBLIC_READONLY", "true");
-  }
-
-  if (entries.has("ADMIN_PASSPHRASE")) {
-    updates.set("ADMIN_PASSPHRASE", entries.get("ADMIN_PASSPHRASE"));
-  }
-
   const updatedKeys = new Set(updates.keys());
   const outputLines = lines.map((line) => {
     const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);

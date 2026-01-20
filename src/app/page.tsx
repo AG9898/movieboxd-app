@@ -1,7 +1,10 @@
+import AuthNav from "@/components/auth/AuthNav";
+import PosterRow from "@/components/rows/PosterRow";
 import { ButtonLink } from "@/components/ui/Button";
+import { getPopularThisMonthMovies, getTrendingMoviesWeek } from "@/lib/tmdb";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
   const features = [
     {
       title: "Reviews",
@@ -28,6 +31,23 @@ export default function Home() {
       accent: "bg-indigo-500/20 text-indigo-400",
     },
   ];
+
+  const [popularResult, trendingResult] = await Promise.allSettled([
+    getPopularThisMonthMovies(),
+    getTrendingMoviesWeek(),
+  ]);
+
+  const popularItems = popularResult.status === "fulfilled" ? popularResult.value : [];
+  const trendingItems = trendingResult.status === "fulfilled" ? trendingResult.value : [];
+
+  const popularTitle =
+    popularResult.status === "fulfilled"
+      ? "Popular this month"
+      : "Popular this month (Unable to load)";
+  const trendingTitle =
+    trendingResult.status === "fulfilled"
+      ? "Trending this week"
+      : "Trending this week (Unable to load)";
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-white">
@@ -67,6 +87,7 @@ export default function Home() {
               >
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -125,6 +146,13 @@ export default function Home() {
                 <p className="text-sm text-slate-400">{feature.body}</p>
               </Link>
             ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-10">
+            <PosterRow title={popularTitle} items={popularItems} />
+            <PosterRow title={trendingTitle} items={trendingItems} />
           </div>
         </section>
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/admin";
+import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -13,21 +13,26 @@ const createSchema = z.object({
 });
 
 export async function GET() {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json(
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
+      { status: 401 }
+    );
+  }
+
   const lists = await prisma.list.findMany({
     orderBy: { updatedAt: "desc" },
+    where: { userId: user.id },
   });
   return NextResponse.json({ ok: true, data: lists });
 }
 
 export async function POST(request: Request) {
-  try {
-    requireAdmin(request);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
       { status: 401 }
     );
   }
@@ -54,6 +59,7 @@ export async function POST(request: Request) {
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       privacy: parsed.data.privacy,
+      userId: user.id,
     },
   });
 

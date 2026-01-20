@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { requireAdmin } from "@/lib/admin";
+import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -10,6 +10,14 @@ type RouteContext = {
 };
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json(
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
+      { status: 401 }
+    );
+  }
+
   const url = new URL(request.url);
   const fallbackId = url.pathname.split("/").filter(Boolean).pop();
   const params = await context.params;
@@ -40,6 +48,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
     );
   }
 
+  if (review.userId !== user.id) {
+    return NextResponse.json(
+      { ok: false, error: { code: "FORBIDDEN", message: "Not allowed." } },
+      { status: 403 }
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     data: {
@@ -65,14 +80,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  try {
-    requireAdmin(request);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
       { status: 401 }
     );
   }
@@ -93,6 +104,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json(
       { ok: false, error: { code: "NOT_FOUND", message: "Review not found." } },
       { status: 404 }
+    );
+  }
+  if (existing.userId !== user.id) {
+    return NextResponse.json(
+      { ok: false, error: { code: "FORBIDDEN", message: "Not allowed." } },
+      { status: 403 }
     );
   }
 

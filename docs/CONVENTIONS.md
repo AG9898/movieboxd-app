@@ -20,7 +20,15 @@ Last updated: 2026-01-14
 - Validate input with Zod.
 - Return `{ ok: true, data }` or `{ ok: false, error }`.
 - Use `runtime = "nodejs"` for routes that rely on Prisma.
-- Protect mutating routes with `requireAdmin`.
+- Protect mutating routes with session + ownership checks.
+
+## Auth conventions
+- Place auth helpers in `src/lib/auth` (session, guards, user lookup).
+- Place auth route handlers in `src/app/api/auth`.
+- Place auth UI in `src/components/auth`.
+- Read sessions on the server; avoid client-side session access for authorization.
+- Use proxy-based route protection for pages in Next 16.
+- Any auth or DB change must update `docs/AUTH.md` and `docs/CHANGELOG.md`.
 
 ## Prisma usage
 - Use the singleton client from `src/lib/prisma.ts` only.

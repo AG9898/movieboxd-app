@@ -1,9 +1,13 @@
 "use client";
 
-import { Button, ButtonLink } from "@/components/ui/Button";
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
+import AddToListButton from "@/components/lists/AddToListButton";
+import { Button } from "@/components/ui/Button";
 import { type MediaType, toMediaType } from "@/types/media";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 
 type CatalogResult = {
   source: "tmdb" | "tvmaze";
@@ -48,6 +52,16 @@ type RecentEntry = {
 };
 
 function RatingStars({ rating }: { rating: number }) {
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your reviews...</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex text-[var(--app-primary)] text-[10px] gap-0.5">
       {[1, 2, 3, 4, 5].map((index) => {
@@ -72,15 +86,17 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export default function ReviewsDashboardPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "tv" | "multi">("multi");
   const [results, setResults] = useState<CatalogResult[]>([]);
   const [selected, setSelected] = useState<CatalogResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isHydrating, setIsHydrating] = useState(false);
+  const [isAutoHydrating, setIsAutoHydrating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [adminPassphrase, setAdminPassphrase] = useState("");
   const [rating, setRating] = useState(0);
   const [liked, setLiked] = useState(false);
   const [notes, setNotes] = useState("");
@@ -90,6 +106,9 @@ export default function ReviewsDashboardPage() {
 
   const trimmedQuery = query.trim();
   const canSearch = trimmedQuery.length >= 2;
+  const preselectTmdbId = searchParams.get("tmdbId");
+  const preselectMediaType = (searchParams.get("mediaType") ?? "movie") as "movie" | "tv";
+  const shouldAutoHydrate = searchParams.get("autoHydrate") === "1";
 
   const resultLabel = useMemo(() => {
     if (!canSearch) return "Type 2+ characters to search.";
@@ -97,6 +116,118 @@ export default function ReviewsDashboardPage() {
     if (results.length === 0) return "No results yet.";
     return `${results.length} results`;
   }, [canSearch, isSearching, results.length]);
+
+  const handleRatingKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+      event.preventDefault();
+      setRating((current) => Math.max(0, Number((current - 0.5).toFixed(1))));
+    }
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+      event.preventDefault();
+      setRating((current) => Math.min(5, Number((current + 0.5).toFixed(1))));
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      setRating(0);
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      setRating(5);
+    }
+  };
+
+  useEffect(() => {
+    if (!preselectTmdbId || selected) return;
+    const numericId = Number(preselectTmdbId);
+    if (Number.isNaN(numericId)) return;
+    let cancelled = false;
+
+    const hydrateAndSelect = async () => {
+      setIsAutoHydrating(true);
+      setError(null);
+      try {
+        if (shouldAutoHydrate) {
+          try {
+            const hydrateResponse = await fetch("/api/catalog/hydrate", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                source: "tmdb",
+                externalId: numericId,
+                mediaType: preselectMediaType,
+              }),
+            });
+            const hydratePayload = (await hydrateResponse.json()) as
+              | { ok: true }
+              | { ok: false; error: { message?: string } };
+
+            if (!hydrateResponse.ok || !hydratePayload.ok) {
+              // Allow selection even if hydration fails.
+            }
+          } catch {
+            // Ignore hydrate failures; title lookup can still use TMDB fallback.
+          }
+        }
+
+        const titleResponse = await fetch(
+          `/api/titles/${numericId}?mediaType=${preselectMediaType}`
+        );
+        const titlePayload = (await titleResponse.json()) as
+          | {
+              ok: true;
+              data: {
+                tmdbId: number;
+                mediaType: "movie" | "tv";
+                title: string;
+                releaseDate: string | null;
+                posterPath: string | null;
+                overview: string | null;
+              };
+            }
+          | { ok: false; error: { message?: string } };
+
+        if (!titleResponse.ok || !titlePayload.ok) {
+          throw new Error(titlePayload.ok ? "Title not found." : titlePayload.error?.message);
+        }
+
+        if (!cancelled) {
+          const year = titlePayload.data.releaseDate
+            ? Number(titlePayload.data.releaseDate.slice(0, 4))
+            : null;
+          setSelected({
+            source: "tmdb",
+            externalId: titlePayload.data.tmdbId,
+            mediaType: titlePayload.data.mediaType,
+            title: titlePayload.data.title,
+            year: Number.isNaN(year) ? null : year,
+            overview: titlePayload.data.overview ?? null,
+            posterUrl: titlePayload.data.posterPath
+              ? `https://image.tmdb.org/t/p/w500${titlePayload.data.posterPath}`
+              : null,
+            backdropUrl: null,
+          });
+          setQuery(titlePayload.data.title);
+          setResults([]);
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Catalog hydrate failed.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAutoHydrating(false);
+        }
+      }
+    };
+
+    hydrateAndSelect();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [preselectMediaType, preselectTmdbId, selected, shouldAutoHydrate]);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -242,7 +373,6 @@ export default function ReviewsDashboardPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           source: selected.source,
@@ -265,7 +395,6 @@ export default function ReviewsDashboardPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           tmdbId: selected.externalId,
@@ -335,29 +464,58 @@ export default function ReviewsDashboardPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
       </header>
-
       <main className="mx-auto flex w-full max-w-[1280px] flex-col px-4 py-8 md:px-8 lg:px-12">
-        <div className="flex flex-col gap-8 lg:flex-row">
-          <div className="flex flex-1 flex-col gap-8">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">
-                Reviews
-              </h1>
-              <p className="text-base font-normal text-[var(--app-muted)]">
-                Log the movies you have watched, rate them, and publish quick reviews.
-              </p>
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Reviews</h1>
+            <p className="text-base font-normal text-[var(--app-muted)]">
+              Log the movies you have watched, rate them, and publish quick reviews.
+            </p>
+          </div>
+
+          {successMessage ? (
+            <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              {successMessage}
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-8 lg:flex-row">
+            <div className="flex w-full flex-col gap-6 lg:w-[320px]">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 shadow-lg">
+                <div
+                  className="mb-4 aspect-[2/3] w-full overflow-hidden rounded-lg bg-cover bg-center shadow-md"
+                  style={{
+                    backgroundImage: selected?.posterUrl
+                      ? `url('${selected.posterUrl}')`
+                      : "var(--app-gradient-poster)",
+                  }}
+                />
+                <div className="flex flex-col gap-1 text-center">
+                  <h2 className="text-xl font-bold text-white">
+                    {selected?.title ?? "Select a film"}
+                  </h2>
+                  <p className="text-sm text-[var(--app-muted)]">
+                    {selected?.year ? `${selected.year} - ` : ""}
+                    {selected?.mediaType === "tv" ? "Series" : "Film"}
+                  </p>
+                </div>
+                {isAutoHydrating ? (
+                  <div className="mt-3 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-xs text-[var(--app-muted)]">
+                    Hydrating title...
+                  </div>
+                ) : null}
+              </div>
             </div>
 
-            <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-6 shadow-lg">
-              <div className="flex flex-col gap-4">
+            <div className="flex flex-1 flex-col gap-6">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 shadow-lg">
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-white">
-                    What did you watch?
-                  </span>
+                  <span className="text-sm font-semibold text-white">What did you watch?</span>
                   <div className="flex w-full items-center gap-3 rounded-lg bg-[var(--app-border)] focus-within:ring-2 focus-within:ring-[var(--app-primary)]/50">
                     <input
                       className="w-full border-none bg-transparent px-4 py-3 text-base text-white placeholder-[var(--app-muted)] focus:ring-0"
@@ -378,18 +536,13 @@ export default function ReviewsDashboardPage() {
                     </select>
                   </div>
                 </label>
-                {successMessage ? (
-                  <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                    {successMessage}
-                  </div>
-                ) : null}
-                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-3 text-xs text-[var(--app-muted)]">
+                <div className="mt-3 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-3 text-xs text-[var(--app-muted)]">
                   <div className="flex items-center justify-between">
                     <span>{resultLabel}</span>
                     {error ? <span className="text-red-300">{error}</span> : null}
                   </div>
                   {showResults ? (
-                    <div className="mt-3 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 sm:mx-auto sm:max-w-[720px]">
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {results.map((item) => {
                         const isSelected = selected?.externalId === item.externalId;
                         return (
@@ -416,12 +569,10 @@ export default function ReviewsDashboardPage() {
                               }}
                             />
                             <div className="flex min-w-0 flex-col justify-center">
-                              <p className="truncate text-sm font-semibold">
-                                {item.title}
-                              </p>
+                              <p className="truncate text-sm font-semibold">{item.title}</p>
                               <p className="truncate text-xs text-[var(--app-muted)]">
                                 {item.mediaType.toUpperCase()}
-                                {item.year ? ` · ${item.year}` : ""}
+                                {item.year ? ` - ${item.year}` : ""}
                               </p>
                             </div>
                           </button>
@@ -435,53 +586,56 @@ export default function ReviewsDashboardPage() {
                     </div>
                   ) : null}
                 </div>
-                {selected ? (
-                  <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-14 w-10 shrink-0 rounded bg-cover bg-center"
-                        style={{
-                          backgroundImage: selected.posterUrl
-                            ? `url('${selected.posterUrl}')`
-                            : "var(--app-gradient-poster)",
-                        }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-white">
-                          {selected.title}
-                        </p>
-                        <p className="text-xs text-[var(--app-muted)]">
-                          {selected.mediaType.toUpperCase()}
-                          {selected.year ? ` · ${selected.year}` : ""}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+              </div>
 
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
+              <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-6 shadow-lg">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium uppercase tracking-wide text-[var(--app-muted)]">
                         Rating
                       </span>
-                      <div className="flex items-center gap-1 text-[var(--app-border-strong)]">
-                        {[1, 2, 3, 4, 5].map((index) => (
-                          <svg
-                            key={index}
-                            aria-hidden="true"
-                            className={`h-4 w-4 transition-transform hover:scale-110 ${
-                              rating >= index
-                                ? "text-[var(--app-primary)]"
-                                : "text-[var(--app-border-strong)]"
-                            }`}
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            onClick={() => setRating(index)}
-                          >
-                            <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
-                          </svg>
-                        ))}
+                      <div
+                        className="flex items-center gap-1 text-[var(--app-border-strong)]"
+                        role="slider"
+                        aria-label="Rating"
+                        aria-valuemin={0}
+                        aria-valuemax={5}
+                        aria-valuenow={rating}
+                        aria-valuetext={`${rating || 0} stars`}
+                        tabIndex={0}
+                        onKeyDown={handleRatingKeyDown}
+                      >
+                        {[1, 2, 3, 4, 5].map((index) => {
+                          const diff = rating - index;
+                          const isFull = diff >= 0;
+                          const isHalf = diff >= -0.5 && diff < 0;
+                          const opacity = isFull ? "opacity-100" : isHalf ? "opacity-60" : "opacity-30";
+                          return (
+                            <div key={index} className="relative">
+                              <svg
+                                aria-hidden="true"
+                                className={`h-5 w-5 transition-transform hover:scale-110 text-[var(--app-primary)] ${opacity}`}
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
+                              </svg>
+                              <button
+                                aria-label={`Rate ${index - 0.5} stars`}
+                                className="absolute inset-y-0 left-0 w-1/2"
+                                onClick={() => setRating(index - 0.5)}
+                                type="button"
+                              />
+                              <button
+                                aria-label={`Rate ${index} stars`}
+                                className="absolute inset-y-0 right-0 w-1/2"
+                                onClick={() => setRating(index)}
+                                type="button"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     <Button
@@ -512,26 +666,17 @@ export default function ReviewsDashboardPage() {
                     >
                       {isHydrating ? "Reviewing..." : "Review Film"}
                     </Button>
-                    <ButtonLink variant="outline" href="/lists">
-                      Add to list
-                    </ButtonLink>
+                    <AddToListButton
+                      tmdbId={selected?.externalId ?? null}
+                      mediaType={selected?.mediaType ?? "movie"}
+                      source={selected?.source ?? "tmdb"}
+                      variant="outline"
+                      size="md"
+                      disabled={!selected}
+                    />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 text-xs text-[var(--app-muted)]">
-                  <details className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2">
-                    <summary className="cursor-pointer text-sm font-semibold text-white">
-                      Admin passphrase (only if writes are locked)
-                    </summary>
-                    <div className="mt-2">
-                      <input
-                        className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-border)] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
-                        placeholder="Optional admin passphrase"
-                        type="password"
-                        value={adminPassphrase}
-                        onChange={(event) => setAdminPassphrase(event.target.value)}
-                      />
-                    </div>
-                  </details>
+                <div className="mt-4 flex flex-col gap-2 text-xs text-[var(--app-muted)]">
                   {selected ? (
                     <span className="text-white">
                       Selected: {selected.title} ({selected.mediaType})
@@ -540,74 +685,69 @@ export default function ReviewsDashboardPage() {
                     <span>Select a title to hydrate it into the catalog.</span>
                   )}
                 </div>
-                <div className="mt-2">
+                <div className="mt-4">
                   <textarea
-                    className="h-20 w-full resize-none rounded-lg border-none bg-[var(--app-border)] p-3 text-sm text-white placeholder-[var(--app-muted)]/70 focus:ring-1 focus:ring-[var(--app-primary)]"
+                    className="h-36 w-full resize-none rounded-lg border-none bg-[var(--app-border)] p-3 text-sm text-white placeholder-[var(--app-muted)]/70 focus:ring-1 focus:ring-[var(--app-primary)]"
                     placeholder="Add a review (optional)..."
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white">Recently Reviewed</h3>
                   <span className="text-xs text-[var(--app-muted)]">Latest 5</span>
                 </div>
-              {isRecentLoading ? (
-                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
-                  Loading recent reviews...
-                </div>
-              ) : recentError ? (
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {recentError}
-                </div>
-              ) : recentEntries.length === 0 ? (
-                <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
-                  No reviews yet.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  {recentEntries.map((movie) => (
-                    <Link
-                      key={movie.id}
-                      className="group relative flex flex-col gap-2"
-                      href={`/reviews/${encodeURIComponent(movie.id)}`}
-                    >
-                      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-[var(--app-border)] shadow-lg">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                          style={{
-                            backgroundImage: movie.image
-                              ? `url('${movie.image}')`
-                              : "none",
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                      </div>
-                      <div className="flex flex-col">
-                        <h4 className="truncate text-sm font-semibold text-white">
-                          {movie.title}
-                        </h4>
-                        <p className="mt-1 line-clamp-2 text-xs text-[var(--app-muted)]">
-                          {movie.body}
-                        </p>
-                        <div className="mt-1 flex items-center justify-between">
-                          <RatingStars rating={movie.rating} />
-                          <span className="text-xs text-[var(--app-muted)]">{movie.date}</span>
+                {isRecentLoading ? (
+                  <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
+                    Loading recent reviews...
+                  </div>
+                ) : recentError ? (
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {recentError}
+                  </div>
+                ) : recentEntries.length === 0 ? (
+                  <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-4 py-3 text-sm text-[var(--app-muted)]">
+                    No reviews yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                    {recentEntries.map((movie) => (
+                      <Link
+                        key={movie.id}
+                        className="group relative flex flex-col gap-2"
+                        href={`/reviews/${encodeURIComponent(movie.id)}`}
+                      >
+                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-[var(--app-border)] shadow-lg">
+                          <div
+                            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                            style={{
+                              backgroundImage: movie.image ? `url('${movie.image}')` : "none",
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                         </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                        <div className="flex flex-col">
+                          <h4 className="truncate text-sm font-semibold text-white">
+                            {movie.title}
+                          </h4>
+                          <p className="mt-1 line-clamp-2 text-xs text-[var(--app-muted)]">
+                            {movie.body}
+                          </p>
+                          <div className="mt-1 flex items-center justify-between">
+                            <RatingStars rating={movie.rating} />
+                            <span className="text-xs text-[var(--app-muted)]">{movie.date}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
-          <aside className="flex w-full flex-col gap-6 lg:w-[340px]">
-          </aside>
         </div>
       </main>
     </div>

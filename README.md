@@ -11,11 +11,10 @@ cp .env.example .env.local
 Update `.env.local` with your values (at minimum `TMDB_API_KEY`), then restart
 the dev server after any env changes so Next.js picks them up.
 
-## Admin writes
+## Authentication
 
-When `PUBLIC_READONLY=true`, write endpoints require an `x-admin-passphrase`
-header matching `ADMIN_PASSPHRASE`. Set `PUBLIC_READONLY=false` to allow writes
-without the header (local/dev only).
+Write endpoints require a signed-in session. Use the sign-in UI locally to
+create a session cookie before calling protected APIs.
 
 ## Database setup
 
@@ -56,15 +55,10 @@ npm run db:seed
 # Catalog search
 curl.exe "http://localhost:3000/api/catalog/search?q=matrix&type=movie&page=1"
 
-# Catalog hydrate (admin-only when PUBLIC_READONLY=true)
+# Catalog hydrate (requires session cookie)
 curl.exe -X POST "http://localhost:3000/api/catalog/hydrate" ^
   -H "Content-Type: application/json" ^
-  -d "{\"source\":\"tmdb\",\"mediaType\":\"movie\",\"externalId\":603}"
-
-# Catalog hydrate (with admin header)
-curl.exe -X POST "http://localhost:3000/api/catalog/hydrate" ^
-  -H "Content-Type: application/json" ^
-  -H "x-admin-passphrase: <ADMIN_PASSPHRASE>" ^
+  -H "Cookie: mbd_session=<SESSION_COOKIE>" ^
   -d "{\"source\":\"tmdb\",\"mediaType\":\"movie\",\"externalId\":603}"
 
 # Titles query

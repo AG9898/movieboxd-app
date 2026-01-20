@@ -1,5 +1,10 @@
 # API
 
+## Auth requirements
+- Review, list, list item, and catalog hydrate endpoints require a signed-in session.
+- Requests are scoped to the signed-in user; cross-user access returns 403.
+- Never accept `userId` from clients.
+
 ## Planned changes
 - Expand list item payloads to include review metadata when available.
 
@@ -32,13 +37,12 @@ Response:
 ```
 
 ## POST /api/catalog/hydrate
-Admin-only when `PUBLIC_READONLY=true` (requires `x-admin-passphrase` header).
+Requires a signed-in session.
 
 Request:
 ```http
 POST /api/catalog/hydrate
 Content-Type: application/json
-X-Admin-Passphrase: <ADMIN_PASSPHRASE>
 
 {
   "source": "tmdb",
@@ -103,6 +107,8 @@ Response:
 ## POST /api/reviews
 
 ## GET /api/reviews
+
+Returns reviews for the signed-in user only.
 
 Request:
 ```http
@@ -169,6 +175,8 @@ Response:
 ```
 
 ## GET /api/lists
+
+Returns lists for the signed-in user only.
 
 ## POST /api/lists
 

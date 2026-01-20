@@ -42,6 +42,8 @@ model Review {
   id               String      @id @default(uuid())
   titleId          String
   title            Title       @relation(fields: [titleId], references: [id])
+  userId           String
+  user             AuthUser    @relation(fields: [userId], references: [id])
   watchedOn        DateTime?   @db.Date
   rating           Decimal?    @db.Decimal(2, 1)
   containsSpoilers Boolean     @default(false)
@@ -52,6 +54,7 @@ model Review {
   tags             ReviewTag[]
 
   @@index([titleId])
+  @@index([userId])
 }
 
 model Tag {
@@ -79,9 +82,13 @@ model List {
   name        String
   description String?
   privacy     String
+  userId      String
+  user        AuthUser   @relation(fields: [userId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   items       ListItem[]
+
+  @@index([userId])
 }
 
 model ListItem {
@@ -96,4 +103,27 @@ model ListItem {
   @@unique([listId, titleId])
   @@index([listId])
   @@index([titleId])
+}
+
+model AuthUser {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  profile      UserProfile?
+  reviews      Review[]
+  lists        List[]
+}
+
+model UserProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        AuthUser @relation(fields: [userId], references: [id])
+  username    String   @unique
+  displayName String?
+  bio         String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

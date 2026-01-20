@@ -1,5 +1,7 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -34,6 +36,7 @@ function formatDate(value: string) {
 }
 
 export default function ListsIndexPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
   const [lists, setLists] = useState<ListSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +45,6 @@ export default function ListsIndexPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [privacy, setPrivacy] = useState<ListSummary["privacy"]>("public");
-  const [adminPassphrase, setAdminPassphrase] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
   const trimmedName = name.trim();
@@ -101,12 +103,11 @@ export default function ListsIndexPage() {
     setIsCreating(true);
     setError(null);
     try {
-      const response = await fetch("/api/lists", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
-        },
+        const response = await fetch("/api/lists", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         body: JSON.stringify({
           name: trimmedName,
           description: description.trim() || undefined,
@@ -129,6 +130,16 @@ export default function ListsIndexPage() {
       setIsCreating(false);
     }
   };
+
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your lists...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-white">
@@ -159,6 +170,7 @@ export default function ListsIndexPage() {
               <Link className="text-sm font-medium text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -268,21 +280,6 @@ export default function ListsIndexPage() {
                 onChange={(event) => setDescription(event.target.value)}
               />
             </label>
-
-            <details className="rounded-lg border border-[var(--app-border-strong)]/40 bg-[var(--app-panel)] px-4 py-3 text-xs text-[var(--app-muted)]">
-              <summary className="cursor-pointer text-sm font-semibold text-white">
-                Admin passphrase (only if writes are locked)
-              </summary>
-              <div className="mt-2">
-                <input
-                  className="w-full rounded-lg border border-[var(--app-border-strong)] bg-[#0b1220] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
-                  placeholder="Optional admin passphrase"
-                  type="password"
-                  value={adminPassphrase}
-                  onChange={(event) => setAdminPassphrase(event.target.value)}
-                />
-              </div>
-            </details>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-[var(--app-muted)]">

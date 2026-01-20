@@ -6,6 +6,10 @@ This changelog follows the Keep a Changelog format.
 
 ## [Unreleased]
 ### Added
+- Added (UI): add landing page poster rows for Popular this month and Trending this week.
+- Added (Docs): Planned (Auth): Better Auth integration (not yet implemented).
+- Added (UI/Auth): add sign-in/up pages, protected profile shell, and session-aware header links.
+- Added (DB/Auth): add auth users, user profiles, and ownership fields for reviews/lists.
 - Added (UI/API): delete reviews from detail view and My Reviews bulk selection.
 - Added (UI): Track Films page layout based on Stitch reference.
 - Added (UI): Rate & Review page layout based on Stitch reference.
@@ -34,6 +38,16 @@ This changelog follows the Keep a Changelog format.
 - Added (API): fetch title details via `GET /api/titles/{tmdbId}`.
 
 ### Changed
+- Changed (API/UI): hydrate title details from TMDB when missing and show rating/description/actions on title details page.
+- Changed (UI): move landing row details into the title details view.
+- Changed (UI/API): streamline Add to list actions with an inline list picker.
+- Changed (UI): add half-star ratings and themed delete/add confirmations.
+- Changed (UI): add global toast system and keyboard-accessible rating controls.
+- Changed (UI/API): link existing reviews from the review page and add list actions to review cards.
+- Changed (UI/Routing): redirect single-title review page to the Reviews dashboard and align the review layout.
+- Changed (UI): move the review search bar above ratings and fix auto-hydrate preselection.
+- Changed (UI): fix Reviews layout structure to restore the search panel placement and grid.
+- Changed (API/Auth): require signed-in sessions and scope reviews/lists/list items to the current user.
 - Changed (UI): replace the default Next.js home page with a custom landing layout.
 - Changed (UI): align the landing page with Stitch reference layout and sections.
 - Changed (UI): update landing navigation to route Lists to `/lists`.
@@ -94,6 +108,7 @@ This changelog follows the Keep a Changelog format.
 
 ### Fixed
 - Fixed (Auth): admin unlock redirect now uses 303 to avoid POSTing to `/reviews`.
+- Fixed (Auth/UI): resolve sign-in/sign-up session cookie handling and /me session read in Next 16.
 - Fixed (API): avoid const reassignment errors in catalog hydrate route.
 - Fixed (API): accept tmdbId from params or path fallback in title details endpoint.
 - Fixed (API): validate listId parsing for list detail and items endpoints.
@@ -104,6 +119,7 @@ This changelog follows the Keep a Changelog format.
 
 ### Removed
 - Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.
+- Removed (Auth): admin unlock flow, passphrase gating, and related UI.
 
 ### Security
 - None.
@@ -115,7 +131,7 @@ This changelog follows the Keep a Changelog format.
 - Titles query API (`/api/titles`) to search local catalog.
 - Health endpoints: `/api/health/catalog`, `/api/health/db`, `/api/health/db-stats`.
 - Prisma schema for titles, diary, reviews, lists, and tags with an initial migration.
-- Admin write protection via `PUBLIC_READONLY` + `x-admin-passphrase` header.
+- Admin write protection via legacy passphrase header.
 - Rate limiting for catalog search.
 - Security headers middleware.
 

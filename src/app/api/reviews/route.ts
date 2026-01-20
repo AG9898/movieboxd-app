@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/admin";
+import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 const listQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  tmdbId: z.coerce.number().int().positive().optional(),
+  mediaType: z.enum(["movie", "tv"]).optional(),
 });
 
 const bodySchema = z.object({
@@ -29,9 +31,19 @@ function parseDate(value?: string): Date | null {
 }
 
 export async function GET(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json(
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
+      { status: 401 }
+    );
+  }
+
   const url = new URL(request.url);
   const parsed = listQuerySchema.safeParse({
     limit: url.searchParams.get("limit") ?? undefined,
+    tmdbId: url.searchParams.get("tmdbId") ?? undefined,
+    mediaType: url.searchParams.get("mediaType") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -51,6 +63,15 @@ export async function GET(request: Request) {
   const reviews = await prisma.review.findMany({
     orderBy: { createdAt: "desc" },
     take: parsed.data.limit,
+    where: parsed.data.tmdbId
+      ? {
+          userId: user.id,
+          title: {
+            tmdbId: parsed.data.tmdbId,
+            mediaType: parsed.data.mediaType ?? undefined,
+          },
+        }
+      : { userId: user.id },
     include: {
       title: true,
       tags: {
@@ -84,14 +105,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  try {
-    requireAdmin(request);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Admin required." } },
+      { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required." } },
       { status: 401 }
     );
   }
@@ -152,6 +169,7 @@ export async function POST(request: Request) {
       const review = await tx.review.create({
         data: {
           titleId: title.id,
+          userId: user.id,
           watchedOn: date,
           rating: rating !== undefined ? new Prisma.Decimal(rating) : null,
           containsSpoilers,

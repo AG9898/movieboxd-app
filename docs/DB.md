@@ -10,6 +10,15 @@
 - Prisma connects using `DATABASE_URL`.
 - The Supabase service role key must NEVER be exposed to the browser.
 
+## Ownership model
+- Reviews and lists are owned by a user (`userId`).
+- List items inherit ownership via their parent list.
+- User profiles are stored separately from auth users.
+
+## Auth tables
+- `AuthUser`: primary auth identity (id, email, passwordHash).
+- `UserProfile`: display-facing profile (username, displayName, bio, avatarUrl).
+
 ## Supabase project setup
 1) Create a new project at https://supabase.com/dashboard.
 2) Choose a project name, region, and database password.

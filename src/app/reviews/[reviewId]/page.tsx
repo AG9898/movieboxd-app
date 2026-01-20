@@ -1,6 +1,10 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
+import AddToListButton from "@/components/lists/AddToListButton";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/ToastProvider";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -43,30 +47,38 @@ function formatDate(value?: string | null) {
 function RatingStars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1 text-[var(--app-primary)]">
-      {[1, 2, 3, 4, 5].map((index) => (
-        <svg
-          key={index}
-          aria-hidden="true"
-          className={`h-4 w-4 ${rating >= index ? "" : "opacity-30"}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
-        </svg>
-      ))}
+      {[1, 2, 3, 4, 5].map((index) => {
+        const diff = rating - index;
+        const isFull = diff >= 0;
+        const isHalf = diff >= -0.5 && diff < 0;
+        const opacity = isFull ? "opacity-100" : isHalf ? "opacity-60" : "opacity-30";
+        return (
+          <svg
+            key={index}
+            aria-hidden="true"
+            className={`h-4 w-4 ${opacity}`}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
+          </svg>
+        );
+      })}
     </div>
   );
 }
 
 export default function ReviewDetailPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
   const params = useParams();
   const router = useRouter();
   const reviewId = Array.isArray(params?.reviewId) ? params.reviewId[0] : params?.reviewId;
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (!reviewId || reviewId === "undefined" || reviewId === "null") {
@@ -118,25 +130,37 @@ export default function ReviewDetailPage() {
 
   const handleDelete = async () => {
     if (!reviewId || typeof reviewId !== "string") return;
-    const confirmed = window.confirm("Delete this review? This cannot be undone.");
-    if (!confirmed) return;
     setIsDeleting(true);
-    setDeleteError(null);
     try {
       const response = await fetch(`/api/reviews/${reviewId}`, { method: "DELETE" });
       const payload = (await response.json()) as ApiResponse<{ ok?: boolean }>;
       if (!response.ok || !payload.ok) {
         throw new Error(payload.ok ? "Failed to delete review." : payload.error?.message);
       }
-      router.push("/my-reviews");
+      addToast("Review deleted.", "success");
+      setShowDeleteConfirm(false);
+      setTimeout(() => {
+        router.push("/my-reviews");
+      }, 900);
     } catch (deleteFailure) {
-      setDeleteError(
-        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete review."
+      addToast(
+        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete review.",
+        "error"
       );
     } finally {
       setIsDeleting(false);
     }
   };
+
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your review...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-white">
@@ -167,6 +191,7 @@ export default function ReviewDetailPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -181,11 +206,20 @@ export default function ReviewDetailPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {review ? (
+              <AddToListButton
+                tmdbId={review.title.tmdbId}
+                mediaType={review.title.mediaType}
+                source="tmdb"
+                variant="outline"
+                size="sm"
+              />
+            ) : null}
             <Button
               variant="outline"
               className="border-red-500/40 text-red-200 hover:border-red-400 hover:text-red-100"
               disabled={!review || isDeleting}
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
             >
               {isDeleting ? "Deleting..." : "Delete review"}
             </Button>
@@ -207,9 +241,27 @@ export default function ReviewDetailPage() {
           </div>
         ) : null}
 
-        {deleteError ? (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {deleteError}
+        {showDeleteConfirm ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-red-200">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span>Delete this review? This cannot be undone.</span>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  className="text-red-200 hover:text-white"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-red-500/80 text-white hover:bg-red-500"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                >
+                  {isDeleting ? "Deleting..." : "Confirm delete"}
+                </Button>
+              </div>
+            </div>
           </div>
         ) : null}
 

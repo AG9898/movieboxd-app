@@ -1,6 +1,10 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
+import AddToListButton from "@/components/lists/AddToListButton";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/ToastProvider";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -38,31 +42,49 @@ function formatDate(value?: string | null) {
 }
 
 function RatingStars({ rating }: { rating: number }) {
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your reviews...</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-1 text-[var(--app-primary)]">
-      {[1, 2, 3, 4, 5].map((index) => (
-        <svg
-          key={index}
-          aria-hidden="true"
-          className={`h-4 w-4 ${rating >= index ? "" : "opacity-30"}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
-        </svg>
-      ))}
+      {[1, 2, 3, 4, 5].map((index) => {
+        const diff = rating - index;
+        const isFull = diff >= 0;
+        const isHalf = diff >= -0.5 && diff < 0;
+        const opacity = isFull ? "opacity-100" : isHalf ? "opacity-60" : "opacity-30";
+        return (
+          <svg
+            key={index}
+            aria-hidden="true"
+            className={`h-4 w-4 ${opacity}`}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M12 2l2.9 6.4 7.1.7-5.3 4.7 1.6 6.8-6.3-3.6-6.3 3.6 1.6-6.8L2 9.1l7.1-.7L12 2z" />
+          </svg>
+        );
+      })}
     </div>
   );
 }
 
 export default function MyReviewsPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
   const [reviews, setReviews] = useState<ReviewSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { addToast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +127,7 @@ export default function MyReviewsPage() {
       }
       return next;
     });
-    setDeleteError(null);
+    setShowDeleteConfirm(false);
   };
 
   const toggleSelection = (reviewId: string) => {
@@ -122,12 +144,7 @@ export default function MyReviewsPage() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.size === 0 || isDeleting) return;
-    const confirmed = window.confirm(
-      `Delete ${selectedIds.size} review${selectedIds.size === 1 ? "" : "s"}? This cannot be undone.`
-    );
-    if (!confirmed) return;
     setIsDeleting(true);
-    setDeleteError(null);
     const ids = Array.from(selectedIds);
     try {
       const responses = await Promise.all(
@@ -140,9 +157,15 @@ export default function MyReviewsPage() {
       setReviews((current) => current.filter((review) => !selectedIds.has(review.id)));
       setSelectedIds(new Set());
       setIsEditing(false);
+      setShowDeleteConfirm(false);
+      addToast(
+        `Deleted ${ids.length} review${ids.length === 1 ? "" : "s"}.`,
+        "success"
+      );
     } catch (deleteFailure) {
-      setDeleteError(
-        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete reviews."
+      addToast(
+        deleteFailure instanceof Error ? deleteFailure.message : "Failed to delete reviews.",
+        "error"
       );
     } finally {
       setIsDeleting(false);
@@ -178,6 +201,7 @@ export default function MyReviewsPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -206,7 +230,7 @@ export default function MyReviewsPage() {
                 variant="outline"
                 className="border-red-500/40 text-red-200 hover:border-red-400 hover:text-red-100"
                 disabled={selectedIds.size === 0 || isDeleting}
-                onClick={handleDeleteSelected}
+                onClick={() => setShowDeleteConfirm(true)}
               >
                 {isDeleting ? "Deleting..." : `Delete selected (${selectedIds.size})`}
               </Button>
@@ -226,9 +250,30 @@ export default function MyReviewsPage() {
           </div>
         ) : null}
 
-        {deleteError ? (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {deleteError}
+        {showDeleteConfirm ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-red-200">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span>
+                Delete {selectedIds.size} review{selectedIds.size === 1 ? "" : "s"}? This
+                cannot be undone.
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  className="text-red-200 hover:text-white"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-red-500/80 text-white hover:bg-red-500"
+                  disabled={isDeleting}
+                  onClick={handleDeleteSelected}
+                >
+                  {isDeleting ? "Deleting..." : "Confirm delete"}
+                </Button>
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -323,13 +368,26 @@ export default function MyReviewsPage() {
             }
 
             return (
-              <Link
+              <div
                 key={review.id}
-                href={`/reviews/${encodeURIComponent(review.id)}`}
-                className="group flex flex-col gap-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 transition-colors hover:border-[var(--app-primary)]/60 sm:flex-row sm:items-center"
+                className="group flex flex-col gap-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] p-4 transition-colors hover:border-[var(--app-primary)]/60"
               >
-                {content}
-              </Link>
+                <Link
+                  href={`/reviews/${encodeURIComponent(review.id)}`}
+                  className="flex flex-col gap-4 sm:flex-row sm:items-center"
+                >
+                  {content}
+                </Link>
+                <div className="flex items-center gap-2">
+                  <AddToListButton
+                    tmdbId={review.title.tmdbId}
+                    mediaType={review.title.mediaType}
+                    source="tmdb"
+                    variant="outline"
+                    size="sm"
+                  />
+                </div>
+              </div>
             );
           })}
         </div>

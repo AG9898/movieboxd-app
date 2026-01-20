@@ -13,7 +13,7 @@ Last updated: 2026-01-14
   - `GET /api/health/db`
   - `GET /api/health/catalog`
   - `GET /api/catalog/search?q=matrix&type=movie&page=1`
-  - `POST /api/catalog/hydrate` (requires `x-admin-passphrase` when `PUBLIC_READONLY=true`)
+- `POST /api/catalog/hydrate` (requires a signed-in session)
 - When you change code: add a categorized entry under `docs/CHANGELOG.md` > [Unreleased] (see `docs/CONVENTIONS.md`).
 - Optional quality checks:
   - Lint: `npm run lint`

@@ -8,11 +8,6 @@ const envSchema = z.object({
     .string()
     .url("TVMAZE_BASE_URL must be a valid URL.")
     .default("https://api.tvmaze.com"),
-  PUBLIC_READONLY: z
-    .enum(["true", "false"])
-    .default("true")
-    .transform((value) => value === "true"),
-  ADMIN_PASSPHRASE: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -25,9 +20,3 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
-
-if (env.PUBLIC_READONLY && !env.ADMIN_PASSPHRASE) {
-  console.warn(
-    "PUBLIC_READONLY is true but ADMIN_PASSPHRASE is missing. Writes will be blocked without admin auth."
-  );
-}

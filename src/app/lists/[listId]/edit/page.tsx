@@ -1,5 +1,7 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -58,6 +60,7 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export default function CurateListPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
   const params = useParams();
   const listId = Array.isArray(params?.listId) ? params.listId[0] : params?.listId;
   const [listName, setListName] = useState("");
@@ -71,7 +74,6 @@ export default function CurateListPage() {
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
   const [isAutoSavingMeta, setIsAutoSavingMeta] = useState(false);
-  const [adminPassphrase, setAdminPassphrase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -292,7 +294,6 @@ function formatReviewDate(value?: string | null) {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
           },
           body: JSON.stringify({
             items: validItems.map((item, index) => ({
@@ -316,7 +317,7 @@ function formatReviewDate(value?: string | null) {
     }, 600);
 
     return () => clearTimeout(handle);
-  }, [adminPassphrase, items, listId]);
+  }, [items, listId]);
 
   async function handleAdd(result: CatalogResult) {
     if (!listId) {
@@ -357,7 +358,6 @@ function formatReviewDate(value?: string | null) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           source: result.source,
@@ -379,7 +379,6 @@ function formatReviewDate(value?: string | null) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           tmdbId: result.externalId,
@@ -420,7 +419,6 @@ function formatReviewDate(value?: string | null) {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({ id }),
       });
@@ -474,7 +472,6 @@ function formatReviewDate(value?: string | null) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({ id, note }),
       });
@@ -510,7 +507,6 @@ function formatReviewDate(value?: string | null) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           name: listName,
@@ -556,7 +552,6 @@ function formatReviewDate(value?: string | null) {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
           },
           body: JSON.stringify({
             name: listName,
@@ -595,7 +590,7 @@ function formatReviewDate(value?: string | null) {
     }, 800);
 
     return () => clearTimeout(handle);
-  }, [adminPassphrase, description, listId, listName, privacy]);
+  }, [description, listId, listName, privacy]);
 
   async function handleDelete() {
     if (!listId) {
@@ -609,7 +604,6 @@ function formatReviewDate(value?: string | null) {
       const response = await fetch(`/api/lists/${listId}`, {
         method: "DELETE",
         headers: {
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
       });
       const payload = (await response.json()) as
@@ -632,6 +626,16 @@ function formatReviewDate(value?: string | null) {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your list...</p>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -663,6 +667,7 @@ function formatReviewDate(value?: string | null) {
               <Link className="text-sm font-medium text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -917,23 +922,6 @@ function formatReviewDate(value?: string | null) {
           </section>
         </div>
       </main>
-
-      <div className="px-6">
-        <details className="rounded-lg border border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-4 py-3 text-xs text-[var(--app-muted)]">
-          <summary className="cursor-pointer text-sm font-semibold text-white">
-            Admin passphrase (only if writes are locked)
-          </summary>
-          <div className="mt-2">
-            <input
-              className="w-full rounded-lg border border-[var(--app-border-strong)] bg-[var(--app-panel)] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
-              placeholder="Optional admin passphrase"
-              type="password"
-              value={adminPassphrase}
-              onChange={(event) => setAdminPassphrase(event.target.value)}
-            />
-          </div>
-        </details>
-      </div>
 
       <div className="sticky bottom-0 z-40 w-full border-t border-[var(--app-border-strong)]/30 bg-[var(--app-surface)] px-6 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between">

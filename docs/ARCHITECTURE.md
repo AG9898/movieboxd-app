@@ -2,8 +2,8 @@
 
 ## 0. Purpose
 Build a deployed personal film tracker (Letterboxd-like) with:
-- No user accounts / multi-user system
-- A single owner/admin mode for write operations
+- Multi-user authentication and profiles (Better Auth planned)
+- Per-user ownership for write operations
 - Public read-only browsing optional (configurable)
 - React + TypeScript + Tailwind + Next.js (App Router)
 - Supabase Postgres as DB, Prisma ORM
@@ -21,12 +21,11 @@ This doc is the source of truth for Codex implementation decisions.
 4) Lists (create/edit lists, privacy setting, order, notes per item)
 5) Landing page + Reviews dashboard + Rate & Review + Lists pages
 6) Dark UI matching Stitch designs
-7) Security/privacy controls suitable for "no accounts"
+7) Security/privacy controls suitable for multi-user accounts
 8) UI button styles consistent across all pages
 
 ### Non-goals (for now)
 - Social graph, comments, follows
-- Multiple accounts / roles
 - Real-time chat/notifications
 - Complex recommendation engine
 
@@ -52,29 +51,18 @@ This doc is the source of truth for Codex implementation decisions.
 
 ---
 
-## 3. "No Accounts" Security Model (IMPORTANT)
+## 3. Account-based Security Model
 
-We still need a way to prevent public write access when deployed.
+Multi-user authentication with per-user ownership.
 
-### 3.1 Modes
-- PUBLIC_READONLY=true: anyone can browse; writes are blocked unless admin
-- PUBLIC_READONLY=false: entire app behind "simple gate" (Basic Auth / passphrase)
+### 3.1 Public vs authenticated
+- Landing and title browsing can remain public.
+- Reviews, lists, list items, and watchlist pages require a signed-in session.
 
-### 3.2 Admin authentication (no users)
-Implement ONE of these (choose A by default):
-
-A) **Admin passphrase cookie** (recommended UX)
-- A single passphrase (ENV: ADMIN_PASSPHRASE)
-- `/admin/unlock` sets HttpOnly cookie `ft_admin=...` (signed)
-- Middleware protects write pages + API routes
-
-B) **HTTP Basic Auth** at middleware level
-- Uses ENV: BASIC_AUTH_USER, BASIC_AUTH_PASS
-- Blocks everything except landing page if desired
-
-C) **Write API key header**
-- Requests must include `x-ft-admin: <token>` to mutate
-- Good for scripts; less friendly for browser UX
+### 3.2 Authentication and authorization
+- Better Auth sessions via HttpOnly cookies.
+- Route handlers verify the session and enforce ownership.
+- No admin-only actions are defined yet; add roles only when needed.
 
 ### 3.3 Database security (Supabase)
 - Enable RLS on all tables
@@ -101,8 +89,12 @@ Use server-only env vars.
         - page.tsx                # List index
         - [listId]/edit/page.tsx  # Curate list
       - layout.tsx                # App shell layout
-    - admin/unlock/page.tsx       # Admin unlock
+    - sign-in/page.tsx            # Sign in
+    - sign-up/page.tsx            # Sign up
+    - sign-out/route.ts           # Sign out
+    - me/page.tsx                 # Profile shell (auth required)
     - api/
+      - auth/session/route.ts
       - catalog/search/route.ts
       - catalog/hydrate/route.ts
       - reviews/route.ts
@@ -130,7 +122,7 @@ Use server-only env vars.
     - ui/                         # shared UI primitives (buttons, inputs)
   - lib/
     - db.ts                       # Prisma client
-    - auth.ts                     # admin session helpers
+    - auth.ts                     # auth session helpers
     - env.ts                      # env validation (Zod)
     - tmdb.ts                     # external API client
     - rateLimit.ts                # basic rate limiting
@@ -234,7 +226,7 @@ Convert them into React components in /components and Next pages in /app.
 - Return JSON with shape:
   - { ok: true, data: ... } or { ok: false, error: { code, message, details? } }
 - Use pagination: `?cursor=...&limit=...` for lists
-- Protect mutating routes (POST/PUT/DELETE) with admin auth middleware
+- Protect mutating routes (POST/PUT/DELETE) with session + ownership checks
 
 ### 7.2 Routes (MVP)
 - GET  /api/catalog/search?q=...&type=movie|tv|multi
@@ -314,7 +306,7 @@ Convert `/design/lists.html` into:
 ## 9. Security/Privacy Checklist (must implement)
 
 ### 9.1 App protections
-- Middleware for admin-only routes
+- Auth checks for protected routes and ownership
 - CSRF protection for POST requests (double submit cookie or origin checks)
 - Rate limit `/api/catalog/search` to avoid abuse
 - Secure headers (CSP, X-Frame-Options, Referrer-Policy)
@@ -348,7 +340,7 @@ Convert `/design/lists.html` into:
   - (4) UI components per page
 - Do not "invent UI" - follow /design HTML structure and Tailwind classes
 - Prefer composing from components; keep pages thin
-- Every POST route must enforce admin auth
+- Every POST route must enforce authenticated ownership
 - Add a `README.md` with local dev setup and env vars
 - Add `docs/API.md` documenting request/response examples for each route
 
@@ -357,4 +349,4 @@ Acceptance criteria for MVP:
 - Reviews dashboard allows logging a title selected from search and saves to DB
 - Review page saves a review + tags
 - Lists page creates/edits a list and adds titles
-- Deployed instance cannot be written to without admin unlock
+- Deployed instance cannot be written to without a signed-in user session

@@ -1,5 +1,7 @@
 "use client";
 
+import AuthNav from "@/components/auth/AuthNav";
+import { useRequireSession } from "@/components/auth/useRequireSession";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -41,6 +43,7 @@ type ApiResponse<T> =
 const watchLaterName = "Watch Later";
 
 export default function ToWatchPage() {
+  const { isLoading: isSessionLoading } = useRequireSession();
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "tv" | "multi">("movie");
   const [results, setResults] = useState<CatalogResult[]>([]);
@@ -49,7 +52,6 @@ export default function ToWatchPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [adminPassphrase, setAdminPassphrase] = useState("");
   const [watchLaterId, setWatchLaterId] = useState<string | null>(null);
   const [watchLaterCount, setWatchLaterCount] = useState<number | null>(null);
 
@@ -157,7 +159,6 @@ export default function ToWatchPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
       },
       body: JSON.stringify({
         name: watchLaterName,
@@ -208,7 +209,6 @@ export default function ToWatchPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           source: selected.source,
@@ -229,7 +229,6 @@ export default function ToWatchPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(adminPassphrase ? { "x-admin-passphrase": adminPassphrase } : {}),
         },
         body: JSON.stringify({
           tmdbId: selected.externalId,
@@ -252,6 +251,16 @@ export default function ToWatchPage() {
     } finally {
       setIsAdding(false);
     }
+  }
+
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-white">
+        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-[var(--app-muted)]">Loading your watchlist...</p>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -283,6 +292,7 @@ export default function ToWatchPage() {
               <Link className="text-sm font-medium text-slate-300 transition-colors hover:text-white" href="/lists">
                 Lists
               </Link>
+              <AuthNav />
             </nav>
           </div>
         </div>
@@ -417,20 +427,6 @@ export default function ToWatchPage() {
             ) : null}
 
             <div className="flex flex-col gap-2 text-xs text-[var(--app-muted)]">
-              <details className="rounded-lg border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-2">
-                <summary className="cursor-pointer text-sm font-semibold text-white">
-                  Admin passphrase (only if writes are locked)
-                </summary>
-                <div className="mt-2">
-                  <input
-                    className="w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-border)] px-3 py-2 text-sm text-white placeholder-[var(--app-muted)]"
-                    placeholder="Optional admin passphrase"
-                    type="password"
-                    value={adminPassphrase}
-                    onChange={(event) => setAdminPassphrase(event.target.value)}
-                  />
-                </div>
-              </details>
               <div className="flex items-center justify-between text-xs text-[var(--app-muted)]">
                 <span>
                   Watch Later list: {watchLaterId ? "ready" : "not created yet"}
