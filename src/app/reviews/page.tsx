@@ -52,16 +52,6 @@ type RecentEntry = {
 };
 
 function RatingStars({ rating }: { rating: number }) {
-  if (isSessionLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--app-bg)] text-white">
-        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
-          <p className="text-sm text-[var(--app-muted)]">Loading your reviews...</p>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="flex text-[var(--app-primary)] text-[10px] gap-0.5">
       {[1, 2, 3, 4, 5].map((index) => {
