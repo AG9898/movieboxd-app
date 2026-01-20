@@ -19,7 +19,7 @@ Last updated: 2026-01-18
 ## Implemented API routes
 - Auth and ownership: review/list/list item endpoints require a signed-in session and scope data to the current user.
 - `GET /api/catalog/search` - Search TMDB, fallback to TVMaze for TV results.
-- `POST /api/catalog/hydrate` - Admin-only; upsert a title into Prisma.
+- `POST /api/catalog/hydrate` - Auth required; upsert a title into Prisma.
 - `GET /api/titles` - Query local titles by substring.
 - `GET /api/titles/{tmdbId}` - Fetch a hydrated title by TMDB ID and media type.
 - `GET /api/health/catalog` - Catalog API health check.
@@ -58,18 +58,11 @@ Last updated: 2026-01-18
 - Apply typography tokens across pages.
 - Add automated smoke tests and CI build gate.
 
-## Planned Auth Migration
-Phases:
-1) Auth foundation: Better Auth setup, Prisma schema updates, seed initial user.
-2) Session wiring: protect write routes, add session helpers, update UI states.
-3) Ownership rollout: add user ownership to reviews/lists and backfill existing data.
-4) Cutover: confirm per-user isolation and public browsing behavior.
-
-Success criteria:
-- Users can sign up, sign in, and sign out in production.
-- Reviews/lists are scoped to the signed-in user by default.
-- Protected routes block writes without a session.
-- Admin-only actions require elevated role.
+## Auth migration status
+- Better Auth-style user accounts are live with session cookies.
+- Reviews/lists/list items are scoped per user with ownership checks.
+- Admin passphrase gating has been removed.
+- Vercel builds run `prisma migrate deploy` and `prisma generate` before `next build`.
 
 ## Known blockers / risks
 - No tests configured beyond linting.

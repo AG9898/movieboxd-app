@@ -1,5 +1,5 @@
 # Changelog
-Last updated: 2026-01-17
+Last updated: 2026-01-18
 
 All notable changes to this project will be documented in this file.
 This changelog follows the Keep a Changelog format.
@@ -7,7 +7,7 @@ This changelog follows the Keep a Changelog format.
 ## [Unreleased]
 ### Added
 - Added (UI): add landing page poster rows for Popular this month and Trending this week.
-- Added (Docs): Planned (Auth): Better Auth integration (not yet implemented).
+- Added (Docs): Better Auth integration plan and deployment guidance.
 - Added (UI/Auth): add sign-in/up pages, protected profile shell, and session-aware header links.
 - Added (DB/Auth): add auth users, user profiles, and ownership fields for reviews/lists.
 - Added (UI/API): delete reviews from detail view and My Reviews bulk selection.
@@ -48,6 +48,7 @@ This changelog follows the Keep a Changelog format.
 - Changed (UI): move the review search bar above ratings and fix auto-hydrate preselection.
 - Changed (UI): fix Reviews layout structure to restore the search panel placement and grid.
 - Changed (API/Auth): require signed-in sessions and scope reviews/lists/list items to the current user.
+- Changed (Build): run `prisma generate` during Vercel builds before Next compilation.
 - Changed (UI): replace the default Next.js home page with a custom landing layout.
 - Changed (UI): align the landing page with Stitch reference layout and sections.
 - Changed (UI): update landing navigation to route Lists to `/lists`.
@@ -116,6 +117,8 @@ This changelog follows the Keep a Changelog format.
 - Fixed (UI): normalize list item media type mapping for list edit state typing.
 - Fixed (UI): guard list item rating rendering against undefined values.
 - Fixed (UI): normalize recent review media types before mapping to dashboard entries.
+- Fixed (Build/UI): remove out-of-scope `isSessionLoading` references in review pages.
+- Fixed (Build): avoid `useSearchParams` in client-only session guard to prevent missing Suspense errors.
 
 ### Removed
 - Removed (API/DB/UI): diary entry model, endpoints, and dashboard copy.
