@@ -42,16 +42,6 @@ function formatDate(value?: string | null) {
 }
 
 function RatingStars({ rating }: { rating: number }) {
-  if (isSessionLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--app-bg)] text-white">
-        <main className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 sm:px-6 lg:px-8">
-          <p className="text-sm text-[var(--app-muted)]">Loading your reviews...</p>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center gap-1 text-[var(--app-primary)]">
       {[1, 2, 3, 4, 5].map((index) => {
