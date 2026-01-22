@@ -48,12 +48,14 @@ export default function AuthNav() {
         >
           Profile
         </Link>
-        <Link
-          className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
-          href="/sign-out"
-        >
-          Sign out
-        </Link>
+        <form action="/sign-out" method="post">
+          <button
+            className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
+            type="submit"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
     );
   }

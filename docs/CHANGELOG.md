@@ -110,6 +110,7 @@ This changelog follows the Keep a Changelog format.
 ### Fixed
 - Fixed (Auth): admin unlock redirect now uses 303 to avoid POSTing to `/reviews`.
 - Fixed (Auth/UI): resolve sign-in/sign-up session cookie handling and /me session read in Next 16.
+- Fixed (Auth/UI): prevent Next.js prefetch from triggering `/sign-out`, keeping sessions intact across navigation.
 - Fixed (API): avoid const reassignment errors in catalog hydrate route.
 - Fixed (API): accept tmdbId from params or path fallback in title details endpoint.
 - Fixed (API): validate listId parsing for list detail and items endpoints.

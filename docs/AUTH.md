@@ -21,6 +21,7 @@ Last updated: 2026-01-18
 - HttpOnly cookies set by Better Auth.
 - Server components and route handlers read the session on the server.
 - Avoid client-side session reads for sensitive logic; use server helpers.
+- Sign-out should be a POST (form submit) to avoid Next.js link prefetch clearing cookies.
 
 ## Authorization rules
 - Create operations always set `userId = session.user.id`.
